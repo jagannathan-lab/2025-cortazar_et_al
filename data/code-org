@@ -1,0 +1,5 @@
+# SNV_Normalize_mRNA_expression.R file uses `Expression_DMSO_vs_SMG1i_PTC.txt` and `Expression_DMSO_vs_SMG1i_SNV.txt`
+
+# SNV_Normalize_NMD_efficiency.R  uses `NMD_efficiency_values_PTC.txt` and `NMD_efficiency_values_SNV.txt`
+
+  
