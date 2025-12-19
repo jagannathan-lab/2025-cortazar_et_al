@@ -1,0 +1,126 @@
+---
+title: "Fig4CD"
+output: html_document
+date: "2025-12-19"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=14)
+library(readr)
+library(dplyr)
+library(readxl)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+library(reactable)
+```
+
+```{r, warning=FALSE, import_data}
+
+#BRCA1
+sge_brca1_hap1_2018 <- read_delim("data/sge_brca1_hap1_2018.txt",
+delim = "\t", escape_double = FALSE,
+trim_ws = TRUE)
+
+#VHL
+sge_vhl_hap1_2024 <- read_excel("data/sge_vhl_hap1_2024.xlsx")
+
+```
+
+```{r}
+#keeping only rna/functional scores for synonymous and nonsense variants
+
+data_brca1_hap1_2018 <- sge_brca1_hap1_2018 %>% select(chromosome = chr., position = pos.hg19, ref, alt, transcript_var = transcript.variant, protein_var =protein.variant, exon = exp., consequence = conseq., rna_score = RNA.score, func_score = function.score) %>% filter(consequence %in% c("Nonsense", "Synonymous")) %>%
+    mutate(consequence = gsub("Nonsense", "stop_gain", consequence),
+            consequence = gsub("Synonymous", "synonymous", consequence),
+              transcript_var = gsub("c.", "", transcript_var),
+           protein_var = gsub("p.", "", protein_var),
+           gene = "BRCA1",
+           exon_num = "23") %>%
+  select(gene, chromosome:exon, exon_num, consequence:func_score) %>%
+  mutate(exon = gsub("exon", "", exon)) %>%
+  mutate_at(c('exon', 'exon_num'), as.numeric)
+
+
+data_vhl_hap1_2024 <- sge_vhl_hap1_2024 %>% select(position = hg38_pos, ref:alt, transcript_var = cHGVS, protein_var = pHGVS, exon = Exon, consequence = conseq, rna_score, func_score = function_score_final) %>% filter(consequence %in% c("SYNONYMOUS", "STOP_GAINED")) %>%
+  mutate_at('rna_score', as.numeric) %>% 
+  mutate(chromosome = "3",
+    consequence = gsub("STOP_GAINED", "stop_gain", consequence),
+         consequence = gsub("SYNONYMOUS", "synonymous", consequence),
+        transcript_var = gsub("c.", "", transcript_var),
+    protein_var = gsub("p.", "", protein_var)) %>% 
+  select(chromosome, position:func_score) %>%
+             mutate(gene = "VHL", exon_num = "3") %>%
+    mutate(exon = gsub("\\/3", "", exon)) %>%
+  select(gene, chromosome:exon, exon_num, consequence:func_score) %>%
+    mutate_at(c('exon', 'exon_num'), as.numeric)
+```
+
+```{r, plots}
+my_colors <- c("#fc8d62","#66c2a5",  "#8da0cb")
+
+ggplot(brca1_sge_data, aes(x = aa_pos, y = mean.rna.score, fill = consequence)) + geom_point(shape = 21, alpha = 0.6) + 
+    geom_hline(yintercept = -1, lty = 2, color = "black", linewidth=0.5) + 
+    theme_bw(base_size=15) +  ylim(-4, 1) +
+scale_fill_manual(values=my_colors) +
+    theme(axis.text.y   = element_text(size=14),
+          axis.text.x   = element_text(size=14),
+          axis.title.y  = element_text(size=14),
+          axis.title.x  = element_text(size=14),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.border = element_rect(colour = "black", fill=NA, linewidth = 1)) +
+  xlim(0, 105)
+  #  geom_smooth(method = "loess", se = TRUE, level = 0.95, color = "black") + 
+  #scale_x_break(c(105, 1630))
+
+ggplot(brca1_sge_data, aes(x = aa_pos, y = function.score.mean, fill = consequence)) + geom_point(shape = 21, alpha = 0.6) + 
+    geom_hline(yintercept = -1, lty = 2, color = "black", linewidth=0.5) + 
+    theme_bw(base_size=15) +  ylim(-4, 1) +
+scale_fill_manual(values=my_colors) +
+    theme(axis.text.y   = element_text(size=14),
+          axis.text.x   = element_text(size=14),
+          axis.title.y  = element_text(size=14),
+          axis.title.x  = element_text(size=14),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.border = element_rect(colour = "black", fill=NA, linewidth = 1)) +
+  #  geom_smooth(method = "loess", se = TRUE, level = 0.95, color = "black") + 
+  scale_x_break(c(105, 1630))
+
+ggplot(vhl_sge_data, aes(x = aa_pos, y = rna_score, fill = conseq)) + geom_point(shape = 21, alpha = 0.6) + 
+    geom_hline(yintercept = -1, lty = 2, color = "black", linewidth=0.5) + 
+    theme_bw(base_size=15) +  ylim(-4, 1) +
+scale_fill_manual(values=my_colors) +
+    theme(axis.text.y   = element_text(size=14),
+          axis.text.x   = element_text(size=14),
+          axis.title.y  = element_text(size=14),
+          axis.title.x  = element_text(size=14),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.border = element_rect(colour = "black", fill=NA, linewidth = 1)) 
+
+  ggplot(brca1_sge_data, aes(x = aa_pos, y = function.score.mean, fill = consequence)) + geom_point(shape = 21, alpha = 0.6) + 
+    geom_hline(yintercept = -1, lty = 2, color = "black", linewidth=0.5) + 
+    theme_bw(base_size=15) +  ylim(-4, 1) +
+scale_fill_manual(values=my_colors) +
+    theme(axis.text.y   = element_text(size=14),
+          axis.text.x   = element_text(size=14),
+          axis.title.y  = element_text(size=14),
+          axis.title.x  = element_text(size=14),
+          panel.background = element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          panel.border = element_rect(colour = "black", fill=NA, linewidth = 1)) +
+  #  geom_smooth(method = "loess", se = TRUE, level = 0.95, color = "black") + 
+  scale_x_break(c(105, 1630))
+
+```
