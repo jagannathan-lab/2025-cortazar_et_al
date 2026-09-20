@@ -1,0 +1,1130 @@
+LOCUS       NM_170707               3178 bp    mRNA    linear   PRI 04-SEP-2026
+DEFINITION  Homo sapiens lamin A/C (LMNA), transcript variant 1, mRNA.
+ACCESSION   NM_170707
+VERSION     NM_170707.4
+KEYWORDS    RefSeq; MANE Select.
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1  (bases 1 to 3178)
+  AUTHORS   McClintock,D., Ratner,D., Lokuge,M., Owens,D.M., Gordon,L.B.,
+            Collins,F.S. and Djabali,K.
+  TITLE     The mutant form of lamin A that causes Hutchinson-Gilford progeria
+            is a biomarker of cellular aging in human skin
+  JOURNAL   PLoS One 2 (12), e1269 (2007)
+   PUBMED   18060063
+REFERENCE   2  (bases 1 to 3178)
+  AUTHORS   Scaffidi,P. and Misteli,T.
+  TITLE     Lamin A-dependent nuclear defects in human aging
+  JOURNAL   Science 312 (5776), 1059-1063 (2006)
+   PUBMED   16645051
+  REMARK    GeneRIF: observations implicate lamin A in physiological aging
+REFERENCE   3  (bases 1 to 3178)
+  AUTHORS   De Sandre-Giovannoli,A., Bernard,R., Cau,P., Navarro,C., Amiel,J.,
+            Boccaccio,I., Lyonnet,S., Stewart,C.L., Munnich,A., Le Merrer,M.
+            and Levy,N.
+  TITLE     Lamin a truncation in Hutchinson-Gilford progeria
+  JOURNAL   Science 300 (5628), 2055 (2003)
+   PUBMED   12702809
+  REMARK    GeneRIF: Hutchinson-Gilford progeria appears to represent a novel
+            laminopathy, caused by a single heterozygous splicing mutation in
+            the LMNA gene, leading to a major loss of Lamin A expression,
+            intimately associated to nuclear alterations
+REFERENCE   4  (bases 1 to 3178)
+  AUTHORS   Hershberger,R.E. and Jordan,E.
+  TITLE     LMNA-Related Dilated Cardiomyopathy
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301717
+REFERENCE   5  (bases 1 to 3178)
+  AUTHORS   Ben Yaou,R., Leturcq,F. and Bonne,G.
+  TITLE     Emery-Dreifuss Muscular Dystrophy
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301609
+REFERENCE   6  (bases 1 to 3178)
+  AUTHORS   Pegoraro,E. and Hoffman,E.P.
+  TITLE     Limb-Girdle Muscular Dystrophy Overview - RETIRED CHAPTER, FOR
+            HISTORICAL REFERENCE ONLY
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301582
+REFERENCE   7  (bases 1 to 3178)
+  AUTHORS   Bird,T.D.
+  TITLE     Charcot-Marie-Tooth Hereditary Neuropathy Overview
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301532
+REFERENCE   8  (bases 1 to 3178)
+  AUTHORS   Hershberger,R.E. and Jordan,E.
+  TITLE     Dilated Cardiomyopathy Overview
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301486
+REFERENCE   9  (bases 1 to 3178)
+  AUTHORS   Sparks,S.E., Quijano-Roy,S., Harper,A., Rutkowski,A., Gordon,E.,
+            Hoffman,E.P. and Pegoraro,E.
+  TITLE     Congenital Muscular Dystrophy Overview - RETIRED CHAPTER, FOR
+            HISTORICAL REFERENCE ONLY
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Pagon RA, Wallace SE and Amemiya A
+            (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301468
+REFERENCE   10 (bases 1 to 3178)
+  AUTHORS   Bird,T.D.
+  TITLE     Charcot-Marie-Tooth Neuropathy Type 2 - RETIRED CHAPTER, FOR
+            HISTORICAL REFERENCE ONLY
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Wallace SE and Amemiya A (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301462
+REFERENCE   11 (bases 1 to 3178)
+  AUTHORS   Gordon,L.B., Brown,W.T. and Collins,F.S.
+  TITLE     Hutchinson-Gilford Progeria Syndrome
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Pagon RA, Wallace SE and Amemiya A
+            (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301300
+COMMENT     REVIEWED REFSEQ: This record has been curated by NCBI staff. The
+            reference sequence was derived from BG822820.1, BC014507.1,
+            AL135927.14 and AI872233.1.
+            
+            On Nov 23, 2018 this sequence version replaced NM_170707.3.
+            
+            Summary: The protein encoded by this gene is part of the nuclear
+            lamina, a two-dimensional matrix of proteins located next to the
+            inner nuclear membrane. The lamin family of proteins make up the
+            matrix and are highly conserved in evolution. During mitosis, the
+            lamina matrix is reversibly disassembled as the lamin proteins are
+            phosphorylated. Lamin proteins are thought to be involved in
+            nuclear stability, chromatin structure and gene expression.
+            Vertebrate lamins consist of two types, A and B. Alternative
+            splicing results in multiple transcript variants. Mutations in this
+            gene lead to several diseases: Emery-Dreifuss muscular dystrophy,
+            familial partial lipodystrophy, limb girdle muscular dystrophy,
+            dilated cardiomyopathy, Charcot-Marie-Tooth disease, and
+            Hutchinson-Gilford progeria syndrome. [provided by RefSeq, May
+            2022].
+            
+            Transcript Variant: This variant (1) encodes isoform A.
+            
+            Publication Note:  This RefSeq record includes a subset of the
+            publications that are available for this gene. Please see the Gene
+            record to access additional publications.
+            
+            ##Evidence-Data-START##
+            Transcript exon combination :: AK026584.1, SRR11853563.2122.1
+                                           [ECO:0000332]
+            ##Evidence-Data-END##
+            
+            ##RefSeq-Attributes-START##
+            MANE Ensembl match     :: ENST00000368300.9/ ENSP00000357283.4
+            RefSeq Select criteria :: based on conservation, expression
+            ##RefSeq-Attributes-END##
+            COMPLETENESS: full length.
+PRIMARY     REFSEQ_SPAN         PRIMARY_IDENTIFIER PRIMARY_SPAN        COMP
+            1-11                BG822820.1         67-77
+            12-2414             BC014507.1         1-2403
+            2415-3176           AL135927.14        27006-27767
+            3177-3178           AI872233.1         21-22               c
+FEATURES             Location/Qualifiers
+     source          1..3178
+                     /organism="Homo sapiens"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:9606"
+                     /chromosome="1"
+                     /map="1q22"
+     gene            1..3178
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="lamin A/C"
+                     /db_xref="GeneID:4000"
+                     /db_xref="HGNC:HGNC:6636"
+                     /db_xref="MIM:150330"
+     exon            1..564
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     CDS             209..2203
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="isoform A is encoded by transcript variant 1; lamin
+                     A/C-like 1; 70 kDa lamin; prelamin-A/C; lamin C; progerin;
+                     renal carcinoma antigen NY-REN-32; mandibuloacral
+                     dysplasia type A; epididymis secretory sperm binding
+                     protein"
+                     /codon_start=1
+                     /product="lamin isoform A"
+                     /protein_id="NP_733821.1"
+                     /db_xref="CCDS:CCDS1129.1"
+                     /db_xref="GeneID:4000"
+                     /db_xref="HGNC:HGNC:6636"
+                     /db_xref="MIM:150330"
+                     /translation="METPSQRRATRSGAQASSTPLSPTRITRLQEKEDLQELNDRLAV
+                     YIDRVRSLETENAGLRLRITESEEVVSREVSGIKAAYEAELGDARKTLDSVAKERARL
+                     QLELSKVREEFKELKARNTKKEGDLIAAQARLKDLEALLNSKEAALSTALSEKRTLEG
+                     ELHDLRGQVAKLEAALGEAKKQLQDEMLRRVDAENRLQTMKEELDFQKNIYSEELRET
+                     KRRHETRLVEIDNGKQREFESRLADALQELRAQHEDQVEQYKKELEKTYSAKLDNARQ
+                     SAERNSNLVGAAHEELQQSRIRIDSLSAQLSQLQKQLAAKEAKLRDLEDSLARERDTS
+                     RRLLAEKEREMAEMRARMQQQLDEYQELLDIKLALDMEIHAYRKLLEGEEERLRLSPS
+                     PTSQRSRGRASSHSSQTQGGGSVTKKRKLESTESRSSFSQHARTSGRVAVEEVDEEGK
+                     FVRLRNKSNEDQSMGNWQIKRQNGDDPLLTYRFPPKFTLKAGQVVTIWAAGAGATHSP
+                     PTDLVWKAQNTWGCGNSLRTALINSTGEEVAMRKLVRSVTVVEDDEDEDGDDLLHHHH
+                     GSHCSSSGDPAEYNLRSRTVLCGTCGQPADKASASGSGAQVGGPISSGSSASSVTVTR
+                     SYRSVGGSGGGSFGDNLVTRSYLLGNSSPRTQSPQNCSIM"
+     mat_peptide     209..2191
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /product="Prelamin-A/C. /id=PRO_0000398835"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1)"
+     mat_peptide     209..2146
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /product="Lamin-A/C. /id=PRO_0000063810"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1)"
+     misc_feature    209..598
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Interaction with MLIP.
+                     /evidence=ECO:0000269|PubMed:21498514"
+     misc_feature    209..307
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Head"
+     misc_feature    209..283
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Disordered. /evidence=ECO:0000256|SAM:MobiDB-lite"
+     misc_feature    209..211
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N-acetylmethionine.
+                     /evidence=ECO:0007744|PubMed:20068231; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    215..217
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:20068231; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    221..223
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    236..238
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    242..244
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:18669648, ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:23186163, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    260..262
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:18669648; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    263..265
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:23186163,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    272..274
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine, by CDK1.
+                     /evidence=ECO:0000269|PubMed:2188730,
+                     ECO:0000269|PubMed:2344612, ECO:0000269|PubMed:24741066,
+                     ECO:0000269|PubMed:25127216, ECO:0000269|Ref.9,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:23186163,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    302..304
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine, alternate.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    308..418
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Coil 1A"
+     misc_feature    359..361
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    404..406
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    419..448
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Linker 1"
+     misc_feature    419..421
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    440..442
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    449..862
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Coil 1B"
+     misc_feature    497..499
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    527..529
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    530..532
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0007744|PubMed:19608861; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    548..550
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    575..577
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    611..613
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    638..640
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    671..673
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    719..721
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine, alternate.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    746..748
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    809..811
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    830..832
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    842..844
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:23186163, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    863..934
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Linker 2"
+     misc_feature    905..907
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    935..1357
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Coil 2"
+     misc_feature    983..1201
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Necessary and sufficient for the interaction with
+                     IFFO1. /evidence=ECO:0000269|PubMed:31548606"
+     misc_feature    986..988
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1001..1003
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1004..1006
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Heptad change of phase; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); other site"
+     misc_feature    1016..1018
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0007744|PubMed:19608861; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1037..1039
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:17081983,
+                     ECO:0007744|PubMed:20068231; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1052..1054
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine, by ATR.
+                     /evidence=ECO:0000269|PubMed:37832547; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1109..1111
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:23186163,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1127..1129
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1139..1141
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0007744|PubMed:19608861; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1154..1156
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1181..1183
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Stutter. /evidence=ECO:0000305; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); other site"
+     misc_feature    1196..1198
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Heptad change of phase; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); other site"
+     misc_feature    1229..1231
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1358..2200
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Tail"
+     misc_feature    1358..1534
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Disordered. /evidence=ECO:0000256|SAM:MobiDB-lite"
+     misc_feature    1376..1378
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0000269|PubMed:25127216, ECO:0007744|PubMed:16964243,
+                     ECO:0007744|PubMed:18669648, ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:21406692, ECO:0007744|PubMed:23186163,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1382..1384
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine, by CDK1.
+                     /evidence=ECO:0000269|PubMed:2188730,
+                     ECO:0000269|PubMed:2344612, ECO:0000269|PubMed:24741066,
+                     ECO:0000269|PubMed:25127216, ECO:0000269|PubMed:37788673,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:21406692,
+                     ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1391..1393
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine, by ATR.
+                     /evidence=ECO:0000269|PubMed:37788673,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    1400..1402
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1415..1417
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1418..1420
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:2188730,
+                     ECO:0000269|PubMed:24741066, ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:21406692, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    1424..1426
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1427..1429
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1448..1450
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:21406692, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    1454..1456
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1457..1474
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Nuclear localization signal.
+                     /evidence=ECO:0000255"
+     misc_feature    1457..1459
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1475..1477
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1484..1486
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1493..1495
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1499..1501
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:20068231; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1556..1558
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0007744|PubMed:19608861; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1577..1579
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1580..1582
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:18669648, ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:21406692, ECO:0007744|PubMed:23186163,
+                     ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1595..1597
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:20068231,
+                     ECO:0007744|PubMed:23186163, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    1664..1666
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="N6-acetyllysine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); acetylation site"
+     misc_feature    1694..1696
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000250|UniProtKB:P48679; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1721..1723
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0007744|PubMed:20068231; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1736..1738
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000250|UniProtKB:P48679; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1805..1807
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1844..1846
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1850..1852
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphothreonine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1862..1936
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Disordered. /evidence=ECO:0000256|SAM:MobiDB-lite"
+     misc_feature    1910..1912
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    1919..1921
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    2000..2065
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     Region: Disordered. /evidence=ECO:0000256|SAM:MobiDB-lite"
+     misc_feature    2042..2044
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:24275569; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    2045..2047
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    2054..2056
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000250|UniProtKB:P48678; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    2063..2065
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:23186163; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); phosphorylation site"
+     misc_feature    2081..2083
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="O-linked (GlcNAc) serine.
+                     /evidence=ECO:0000269|PubMed:26237509; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); glycosylation site"
+     misc_feature    2090..2092
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="O-linked (GlcNAc) serine.
+                     /evidence=ECO:0000269|PubMed:26237509; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); glycosylation site"
+     misc_feature    2090..2092
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:17924679,
+                     ECO:0007744|PubMed:18220336, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:23186163;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    2102..2104
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0007744|PubMed:16964243,
+                     ECO:0007744|PubMed:18669648, ECO:0007744|PubMed:18691976,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:23186163;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    2114..2116
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:16964243, ECO:0007744|PubMed:18669648,
+                     ECO:0007744|PubMed:20068231, ECO:0007744|PubMed:21406692,
+                     ECO:0007744|PubMed:23186163, ECO:0007744|PubMed:24275569;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    2144..2149
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Cleavage, by endoprotease; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); cleavage site"
+     misc_feature    2162..2164
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Phosphoserine.
+                     /evidence=ECO:0000269|PubMed:24741066,
+                     ECO:0007744|PubMed:18669648, ECO:0007744|PubMed:20068231;
+                     propagated from UniProtKB/Swiss-Prot (P02545.1);
+                     phosphorylation site"
+     misc_feature    2189..2191
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="Cysteine methyl ester.
+                     /evidence=ECO:0000269|PubMed:8175923,
+                     ECO:0000269|PubMed:9030603; propagated from
+                     UniProtKB/Swiss-Prot (P02545.1); methylation site"
+     exon            565..721
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            722..847
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            848..1018
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1019..1144
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1145..1365
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1366..1588
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1589..1696
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1697..1816
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1817..1906
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            1907..2176
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     exon            2177..3178
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /inference="alignment:Splign:2.1.0"
+     regulatory      3160..3165
+                     /regulatory_class="polyA_signal_sequence"
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="hexamer: AATACA"
+     polyA_site      3178
+                     /gene="LMNA"
+                     /gene_synonym="CDCD1; CDDC; CMD1A; CMT2B1; EMD2; FPL;
+                     FPLD; FPLD2; HGPS; IDC; LDP1; LFP; LGMD1B; LMN1; LMNC;
+                     LMNL1; MADA; PRO1"
+                     /note="major polyA site"
+ORIGIN      
+        1 agtgttcgcg ggagcgccgc acctacacca gccaacccag atcccgaggt ccgacagcgc
+       61 ccggcccaga tccccacgcc tgccaggagc aagccgagag ccagccggcc ggcgcactcc
+      121 gactccgagc agtctctgtc cttcgacccg agccccgcgc cctttccggg acccctgccc
+      181 cgcgggcagc gctgccaacc tgccggccat ggagaccccg tcccagcggc gcgccacccg
+      241 cagcggggcg caggccagct ccactccgct gtcgcccacc cgcatcaccc ggctgcagga
+      301 gaaggaggac ctgcaggagc tcaatgatcg cttggcggtc tacatcgacc gtgtgcgctc
+      361 gctggaaacg gagaacgcag ggctgcgcct tcgcatcacc gagtctgaag aggtggtcag
+      421 ccgcgaggtg tccggcatca aggccgccta cgaggccgag ctcggggatg cccgcaagac
+      481 ccttgactca gtagccaagg agcgcgcccg cctgcagctg gagctgagca aagtgcgtga
+      541 ggagtttaag gagctgaaag cgcgcaatac caagaaggag ggtgacctga tagctgctca
+      601 ggctcggctg aaggacctgg aggctctgct gaactccaag gaggccgcac tgagcactgc
+      661 tctcagtgag aagcgcacgc tggagggcga gctgcatgat ctgcggggcc aggtggccaa
+      721 gcttgaggca gccctaggtg aggccaagaa gcaacttcag gatgagatgc tgcggcgggt
+      781 ggatgctgag aacaggctgc agaccatgaa ggaggaactg gacttccaga agaacatcta
+      841 cagtgaggag ctgcgtgaga ccaagcgccg tcatgagacc cgactggtgg agattgacaa
+      901 tgggaagcag cgtgagtttg agagccggct ggcggatgcg ctgcaggaac tgcgggccca
+      961 gcatgaggac caggtggagc agtataagaa ggagctggag aagacttatt ctgccaagct
+     1021 ggacaatgcc aggcagtctg ctgagaggaa cagcaacctg gtgggggctg cccacgagga
+     1081 gctgcagcag tcgcgcatcc gcatcgacag cctctctgcc cagctcagcc agctccagaa
+     1141 gcagctggca gccaaggagg cgaagcttcg agacctggag gactcactgg cccgtgagcg
+     1201 ggacaccagc cggcggctgc tggcggaaaa ggagcgggag atggccgaga tgcgggcaag
+     1261 gatgcagcag cagctggacg agtaccagga gcttctggac atcaagctgg ccctggacat
+     1321 ggagatccac gcctaccgca agctcttgga gggcgaggag gagaggctac gcctgtcccc
+     1381 cagccctacc tcgcagcgca gccgtggccg tgcttcctct cactcatccc agacacaggg
+     1441 tgggggcagc gtcaccaaaa agcgcaaact ggagtccact gagagccgca gcagcttctc
+     1501 acagcacgca cgcactagcg ggcgcgtggc cgtggaggag gtggatgagg agggcaagtt
+     1561 tgtccggctg cgcaacaagt ccaatgagga ccagtccatg ggcaattggc agatcaagcg
+     1621 ccagaatgga gatgatccct tgctgactta ccggttccca ccaaagttca ccctgaaggc
+     1681 tgggcaggtg gtgacgatct gggctgcagg agctggggcc acccacagcc cccctaccga
+     1741 cctggtgtgg aaggcacaga acacctgggg ctgcgggaac agcctgcgta cggctctcat
+     1801 caactccact ggggaagaag tggccatgcg caagctggtg cgctcagtga ctgtggttga
+     1861 ggacgacgag gatgaggatg gagatgacct gctccatcac caccacggct cccactgcag
+     1921 cagctcgggg gaccccgctg agtacaacct gcgctcgcgc accgtgctgt gcgggacctg
+     1981 cgggcagcct gccgacaagg catctgccag cggctcagga gcccaggtgg gcggacccat
+     2041 ctcctctggc tcttctgcct ccagtgtcac ggtcactcgc agctaccgca gtgtgggggg
+     2101 cagtgggggt ggcagcttcg gggacaatct ggtcacccgc tcctacctcc tgggcaactc
+     2161 cagcccccga acccagagcc cccagaactg cagcatcatg taatctggga cctgccaggc
+     2221 aggggtgggg gtggaggctt cctgcgtcct cctcacctca tgcccacccc ctgccctgca
+     2281 cgtcatggga gggggcttga agccaaagaa aaataaccct ttggtttttt tcttctgtat
+     2341 ttttttttct aagagaagtt attttctaca gtggttttat actgaaggaa aaacacaagc
+     2401 aaaaaaaaaa aaaagcatct atctcatcta tctcaatcct aatttctcct cccttccttt
+     2461 tccctgcttc caggaaactc cacatctgcc ttaaaaccaa agagggcttc ctctagaagc
+     2521 caagggaaag gggtgctttt atagaggcta gcttctgctt ttctgccctg gctgctgccc
+     2581 ccaccccggg gaccctgtga catggtgcct gagaggcagg catagaggct tctccgccag
+     2641 cctcctctgg acggcaggct cactgccagg ccagcctccg agagggagag agagagagag
+     2701 aggacagctt gagccgggcc cctgggcttg gcctgctgtg attccactac acctggctga
+     2761 ggttcctctg cctgccccgc ccccagtccc cacccctgcc cccagccccg gggtgagtcc
+     2821 attctcccag gtaccagctg cgcttgcttt tctgtatttt atttagacaa gagatgggaa
+     2881 tgaggtggga ggtggaagaa gggagaagaa aggtgagttt gagctgcctt ccctagcttt
+     2941 agaccctggg tgggctctgt gcagtcactg gaggttgaag ccaagtgggg tgctgggagg
+     3001 agggagaggg aggtcactgg aaaggggaga gcctgctggc acccaccgtg gaggaggaag
+     3061 gcaagagggg gtggaggggt gtggcagtgg ttttggcaaa cgctaaagag cccttgcctc
+     3121 cccatttccc atctgcaccc cttctctcct ccccaaatca atacactagt tgtttcta
+//
+
