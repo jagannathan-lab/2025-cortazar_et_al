@@ -1,0 +1,1127 @@
+---
+title: "LMNA NMD prediction: benchmarking existing predictors against a gene-specific random forest"
+subtitle: "Reproducible pipeline for Figure 7, Figure S7 and Table S7"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 4)
+knitr::opts_chunk$set(cache.path = '.cache/', autodep = TRUE)
+suppressPackageStartupMessages({
+  library(readxl); library(ranger); library(mclust); library(ggplot2)
+  library(gridExtra); library(grid); library(treeshap); library(scales)
+  library(ggbeeswarm); library(openxlsx)
+})
+DATA_DIR <- "data"; OUT <- "output"; dir.create(OUT, showWarnings = FALSE)
+SEED <- 42
+COL_ACT <- "#3B7A6B"; COL_PRED <- "#C77B3B"; COL_TEST <- "#6A4C93"; COL_DISC <- "#E23B3B"; COL_EDIT <- "#8D6E9C"
+# Journal geometry: 6.5 in text width, minimum 8 pt for every element,
+# axis titles 10 pt, panel letters 12 pt bold.
+theme_fig <- function(base = 8) theme_minimal(base_size = base) +
+  theme(panel.grid = element_blank(), plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
+        axis.title = element_text(size = 10), axis.text = element_text(size = 8),
+        legend.text = element_text(size = 8, margin = margin(r = 8)), legend.title = element_text(size = 8),
+        legend.spacing.x = unit(0.2, "cm"), plot.margin = margin(2, 3, 2, 3),
+        strip.background = element_blank(), strip.text = element_text(size = 8),
+        panel.border = element_rect(colour = "grey25", fill = NA, linewidth = 0.4),
+        plot.title.position = "plot")
+```
+
+# Design
+
+Everything below is computed in this document, in R, from `data/`.
+
+1. **Held-out test set.** 10% of codons (all stop codons at a codon travel together)
+   are drawn at random once, with a fixed seed, and are excluded from every
+   training and model-selection step of that split: the Gaussian-mixture threshold, the
+   codon-grouped cross-validation, the block-size sweep, the discordance threshold,
+   the linear rescaling of NMDetective scores, and SHAP. The AUC and R² in Fig. 7A
+   are medians over 50 independent re-draws of such a split (section 6a).
+2. **Gene-agnostic features.** The random forest does not receive the hand-defined
+   5′/active/3′ region, and is not told the shape of NMD activity along the CDS;
+   the local shape and the positions of the transitions are learned. Positional features are derived
+   from the NM_170707.4 exon structure (`data/NM_170707.4.gb`) in units that exist
+   in every gene: nt from CDS start, nt to the last EJC, nt to the next EJC, nt from
+   the previous EJC, containing-exon length, and number of downstream EJCs.
+3. **Leakage-aware evaluation on the training set.** Cross-validation is grouped by
+   codon (so a held-out PTC's sibling stop codons are never in training) and, for
+   the block-size sweep, by contiguous windows of codons.
+4. **The PTC is the unit of analysis.** Every count, threshold and plotted point in
+   Figs. 7 and S7 is per PTC (n = 763), never a per-codon average. Codon means appear
+   in exactly two places, both noted in the code: the misclassification comparison in
+   section 11, kept only so the two units can be contrasted, and the boundary
+   positions in Fig. 7A, where averaging is correct because a boundary is a property
+   of position rather than of stop-codon identity.
+
+# 1. Data and exon structure
+
+```{r load}
+lmna <- read_excel(file.path(DATA_DIR, "TableS6_NMD_efficiency_values.xlsx"))
+lmna$mutation <- as.character(lmna$mutation)
+lmna <- lmna[!is.na(lmna$mean_NMD_efficiency), ]
+seq_lines <- readLines(file.path(DATA_DIR, "LMNA_NM_170707.4_CDS.fasta"))
+cds_seq <- paste(seq_lines[!startsWith(seq_lines, ">")], collapse = "")
+lmna$plus4 <- substring(cds_seq, (lmna$codon - 1) * 3 + 4, (lmna$codon - 1) * 3 + 4)
+lmna$plus5 <- substring(cds_seq, (lmna$codon - 1) * 3 + 5, (lmna$codon - 1) * 3 + 5)
+stopifnot(lmna$plus4[lmna$codon == 240][1] == "C", lmna$plus5[lmna$codon == 240][1] == "T")
+nmdet <- read.csv(file.path(DATA_DIR, "NMDetective_LMNA_per_codon_scores.csv"))
+n_before <- nrow(lmna)
+lmna <- merge(lmna, nmdet, by = "codon"); lmna <- lmna[order(lmna$codon, lmna$mutation), ]
+stopifnot(nrow(lmna) == n_before, nrow(lmna) == 763L)
+rownames(lmna) <- NULL
+
+gb <- readLines(file.path(DATA_DIR, "NM_170707.4.gb"))
+ex <- regmatches(gb, regexec("^\\s+exon\\s+(\\d+)\\.\\.(\\d+)", gb))
+exons <- do.call(rbind, lapply(ex[lengths(ex) > 0], function(m) as.integer(m[2:3])))
+cds <- as.integer(regmatches(gb, regexec("^\\s+CDS\\s+(\\d+)\\.\\.(\\d+)", gb))[[grep("^\\s+CDS\\s", gb)]][2:3])
+exon_cds <- exons - cds[1] + 1; exon_len <- exons[, 2] - exons[, 1] + 1
+junctions <- exon_cds[-nrow(exon_cds), 2]; LAST_EJC <- tail(junctions, 1)
+stopifnot(nrow(exons) == 12, LAST_EJC == 1968, nchar(cds_seq) == cds[2] - cds[1] + 1)
+cat("PTC rows:", nrow(lmna), " codons:", length(unique(lmna$codon)),
+    "\nExon ends (CDS codon):", round(junctions / 3, 1), "\n")
+
+pos_features <- function(c) {
+  nt_end <- 3 * c; ex_i <- which(exon_cds[, 1] <= nt_end & nt_end <= exon_cds[, 2])
+  down <- junctions[junctions >= nt_end]
+  c(nt_from_CDS_start = 3 * (c - 1), nt_to_last_EJC = LAST_EJC - nt_end,
+    nt_to_next_EJC = if (length(down)) min(down) - nt_end else -1L,
+    nt_from_prev_EJC = nt_end - (if (ex_i > 1) exon_cds[ex_i - 1, 2] else 0),
+    exon_length = exon_len[ex_i], n_downstream_EJCs = length(down))
+}
+Fpos <- as.data.frame(t(sapply(lmna$codon, pos_features)))
+onehot <- function(x, prefix) { lv <- sort(unique(x))
+  out <- as.data.frame(lapply(lv[-1], function(l) as.integer(x == l))); names(out) <- paste0(prefix, "_", lv[-1]); out }
+# Sequence context is encoded as three blocks:
+#   (i) stop-codon identity, capturing the general TAA > TAG > TGA termination hierarchy;
+#   (ii) the +4 and +5 nucleotides, one-hot encoded;
+#   (iii) a single TGA-CT indicator. A cytosine at +4 with a uracil at +5 following a UGA is
+#         the element required for translational readthrough, and its effect is conditional
+#         on the stop codon rather than additive across +4 and +5, so the one-hot columns
+#         alone cannot represent it. Adding the indicator to them improves classification
+#         without cost to R2 (see Methods).
+Fctx <- cbind(onehot(lmna$mutation, "stop"), onehot(lmna$plus4, "plus4"), onehot(lmna$plus5, "plus5"),
+              TGACT = as.integer(lmna$mutation == "TGA" & lmna$plus4 == "C" & lmna$plus5 == "T"))
+X_full <- cbind(Fpos, Fctx)
+y <- lmna$mean_NMD_efficiency; codon <- lmna$codon; n <- nrow(lmna)
+tile <- findInterval(codon, c(1, 214, 434, 537, 626))
+```
+
+# 2. Held-out split (10% of codons, random, grouped)
+
+```{r split}
+set.seed(SEED)
+ucod <- sort(unique(codon)); n_test <- round(0.10 * length(ucod))
+test_codons <- sort(sample(ucod, n_test))
+is_test <- codon %in% test_codons; is_train <- !is_test
+cat(sprintf("Held out %d codons (%d PTC rows); training on %d codons (%d rows)\n",
+            n_test, sum(is_test), length(ucod) - n_test, sum(is_train)))
+cat("Held-out codons:", test_codons, "\n")
+```
+
+# 3. Ground-truth labels: Gaussian-mixture threshold (training rows only)
+
+```{r gmm}
+gmm <- Mclust(y[is_train], G = 2, verbose = FALSE)
+mu <- gmm$parameters$mean; o <- order(mu); mu <- mu[o]
+sg <- sqrt(gmm$parameters$variance$sigmasq); if (length(sg) == 1) sg <- rep(sg, 2); sg <- sg[o]
+w <- gmm$parameters$pro[o]
+grid <- seq(-0.2, 1, length.out = 20000)
+post <- w[2] * dnorm(grid, mu[2], sg[2]) / (w[1] * dnorm(grid, mu[1], sg[1]) + w[2] * dnorm(grid, mu[2], sg[2]))
+THRESH <- grid[which(diff(sign(post - 0.5)) != 0)[1]]
+lab <- as.integer(y > THRESH)
+cat(sprintf("Components: mean %.3f/%.3f, sd %.3f/%.3f, weight %.2f/%.2f -> threshold %.3f\n", mu[1], mu[2], sg[1], sg[2], w[1], w[2], THRESH))
+cat(sprintf("Held-out set: %d NMD-triggering, %d NMD-escaping rows\n", sum(lab[is_test]), sum(1 - lab[is_test])))
+stopifnot(sum(lab[is_test]) > 0, sum(1 - lab[is_test]) > 0)
+writeLines(as.character(THRESH), file.path(OUT, "gmm_threshold.txt"))
+```
+
+# 4. Comparator models
+
+```{r comparators}
+r2  <- function(a, p) 1 - sum((a - p)^2) / sum((a - mean(a))^2)
+auc <- function(s, l) { r <- rank(s); n1 <- sum(l == 1); n0 <- sum(l == 0); (sum(r[l == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0) }
+# Rule boundaries are derived from the NM_170707.4 exon structure rather than hard-coded, and
+# follow each tool's own implementation:
+#   50-nt rule: a PTC escapes if it lies <= 50 nt upstream of the last EJC.
+#   aenmd v0.3.11 (R/nmd_escape_rules.R; css_prox_dist = 150L, penultimate_prox_dist = 50L):
+#     escape if start-proximal (3c - 3 < 150), in the last exon, within 50 nt of the penultimate
+#     exon end, in a single-exon transcript, or in an exon of >= 407 nt. The long-exon rule is
+#     evaluated on CDS-relative exon coordinates, where LMNA's largest coding exon is 356 nt, so
+#     it applies to no exon of this transcript.
+#   VEP NMD plugin (Ensembl/VEP_plugins, NMD.pm): escape if cds_end <= 101, in the last exon,
+#     within the final 51 nt of the penultimate exon, or in an intronless transcript.
+CSS_PROX <- 150L; PENULT_PROX_AENMD <- 50L; VEP_CDS_MAX <- 101L; VEP_PENULT <- 51L
+cds_end_of <- function(cc) 3L * cc                       # 3'-most base of the codon
+rule_5055  <- as.integer(LAST_EJC - cds_end_of(codon) > 50L)
+rule_aenmd <- as.integer((3L * codon - 3L) >= CSS_PROX &
+                         (LAST_EJC - cds_end_of(codon)) >= PENULT_PROX_AENMD)
+rule_vep   <- as.integer(cds_end_of(codon) > VEP_CDS_MAX &
+                         cds_end_of(codon) < LAST_EJC - VEP_PENULT)
+stopifnot(identical(rule_5055,  as.integer(codon < 640)),
+          identical(rule_aenmd, as.integer(codon > 50 & codon < 640)),
+          identical(rule_vep,   as.integer(codon > 33 & codon < 639)))
+# NMDetective: linear rescale to the measured scale, fit on TRAINING rows only
+rescale_fit <- function(raw) lm(y[is_train] ~ raw[is_train])
+fitA <- rescale_fit(lmna$NMDetectiveA); fitB <- rescale_fit(lmna$NMDetectiveB)
+nmdA_scaled <- coef(fitA)[1] + coef(fitA)[2] * lmna$NMDetectiveA
+nmdB_scaled <- coef(fitB)[1] + coef(fitB)[2] * lmna$NMDetectiveB
+```
+
+# 5. Random forest: training-set cross-validation
+
+```{r rf-helpers}
+fit_rf <- function(X, idx, importance = "none")
+  ranger(y ~ ., data = cbind(X[idx, , drop = FALSE], y = y[idx]), num.trees = 500, min.node.size = 3,
+         seed = SEED, importance = importance)
+predict_rf <- function(m, X, idx) predict(m, data = X[idx, , drop = FALSE])$predictions
+cv_oof <- function(X, folds, idx = which(is_train)) {
+  oof <- rep(NA_real_, n)
+  for (f in unique(folds[idx])) { te <- idx[folds[idx] == f]; tr <- idx[folds[idx] != f]
+    oof[te] <- predict_rf(fit_rf(X, tr), X, te) }
+  oof
+}
+set.seed(SEED)
+tr_cod <- ucod[!ucod %in% test_codons]
+fold_grouped <- setNames(sample(rep(1:10, length.out = length(tr_cod))), tr_cod)[as.character(codon)]
+fold_random  <- rep(NA_integer_, n); fold_random[is_train] <- sample(rep(1:10, length.out = sum(is_train)))
+# Blocked CV: codons are grouped into contiguous windows of b codons, and the windows
+# are dealt round-robin into at most MAX_FOLDS folds. Each fold therefore still holds out
+# contiguous b-codon windows (the quantity of interest), but small b no longer implies
+# hundreds of refits; with few windows this reduces to leave-one-window-out.
+MAX_FOLDS <- 20
+block_folds <- function(b) {
+  if (b == "tile") return(tile)
+  w <- as.integer(factor((codon - 1) %/% as.integer(b)))
+  nw <- length(unique(w))
+  if (nw <= MAX_FOLDS) return(w)
+  set.seed(SEED); map <- setNames(sample(rep(1:MAX_FOLDS, length.out = nw)), sort(unique(w)))
+  as.integer(map[as.character(w)])
+}
+```
+
+## 5a. Codon-grouped out-of-fold predictions
+
+```{r grouped-cv}
+tr <- which(is_train)
+# Out-of-fold predictions under codon-grouped CV: a PTC's sibling stop codons are never
+# in its training fold. These are the values plotted for training codons in Fig. 7C,D;
+# held-out codons use the final model instead.
+oof_grouped <- cv_oof(X_full, fold_grouped)
+cat(sprintf("Codon-grouped CV on training rows: R2 %.3f, AUC %.3f\n",
+            r2(y[tr], oof_grouped[tr]), auc(oof_grouped[tr], lab[tr])))
+```
+
+## 5b. Block-size sweep
+
+```{r block-sweep, cache=TRUE}
+idx_by_tr <- split(tr, codon[tr])
+boot_ci <- function(stat, idx_by, B = 1000, seed = 1) { set.seed(seed)
+  v <- replicate(B, { i <- unlist(idx_by[sample(names(idx_by), length(idx_by), replace = TRUE)], use.names = FALSE)
+    tryCatch(stat(i), error = function(e) NA) }); quantile(v, c(.025, .975), na.rm = TRUE) }
+# NMDetectiveA is a fixed genome-wide score: it is not fitted to LMNA and cannot learn from the
+# training folds, so it enters this panel as a single reference level rather than as a curve. Its
+# linear rescaling to the measured scale is estimated once on all training rows (two parameters
+# over 687 PTCs, so the in-sample optimism is negligible and runs in the comparator's favour).
+NMDA_REF <- local({ b <- coef(lm(y[tr] ~ lmna$NMDetectiveA[tr]))
+                    r2(y[tr], b[1] + b[2] * lmna$NMDetectiveA[tr]) })
+block_sizes <- c("1", "3", "5", "10", "20", "30", "50", "tile")
+sweep <- do.call(rbind, lapply(block_sizes, function(b) {
+  p  <- cv_oof(X_full, block_folds(b))
+  ci <- boot_ci(function(i) r2(y[i], p[i]), idx_by_tr, B = 300)
+  data.frame(block = b, R2 = r2(y[tr], p[tr]), R2_lo = ci[1], R2_hi = ci[2], AUC = auc(p[tr], lab[tr]))
+}))
+cat(sprintf("NMDetectiveA reference (fixed score, single rescale on training rows): R2 %.3f\n", NMDA_REF))
+rownames(sweep) <- NULL; print(sweep, digits = 3, row.names = FALSE)
+write.csv(sweep, file.path(OUT, "block_size_sweep.csv"), row.names = FALSE)
+```
+
+# 6. Final model
+
+```{r final-model}
+te <- which(is_test)
+rf_full <- fit_rf(X_full, tr, importance = "permutation")
+pred_full <- rep(NA_real_, n); pred_full[te] <- predict_rf(rf_full, X_full, te)
+cat(sprintf("Final model fitted on %d training PTCs; predictions for %d held-out PTCs\n",
+            length(tr), length(te)))
+```
+
+## 6a. Held-out evaluation over 50 random grouped splits
+
+Every performance figure quoted in the paper comes from this section. The whole
+procedure (split, rescale NMDetective on training rows, fit the random forest on
+training rows, evaluate on held-out rows) is repeated over 50 random grouped
+splits, and Fig. 7A reports the median and 5th-95th percentiles across them.
+
+```{r repeated-splits, cache=TRUE}
+N_SPLITS <- 50
+set.seed(SEED + 1)
+split_sets <- c(list(test_codons), replicate(N_SPLITS, sample(ucod, n_test), simplify = FALSE))
+# element 1 is the prespecified split; elements 2..N_SPLITS+1 are the random re-draws
+eval_split <- function(tc, k) {
+  ite <- which(codon %in% tc); itr <- which(!codon %in% tc)
+  fA <- lm(y[itr] ~ lmna$NMDetectiveA[itr]); sA <- coef(fA)[1] + coef(fA)[2] * lmna$NMDetectiveA
+  fB <- lm(y[itr] ~ lmna$NMDetectiveB[itr]); sB <- coef(fB)[1] + coef(fB)[2] * lmna$NMDetectiveB
+  pf <- predict_rf(fit_rf(X_full, itr), X_full, ite)
+  sc <- list("50-55nt rule alone" = rule_5055[ite], "aenmd rules" = rule_aenmd[ite], "VEP predictor" = rule_vep[ite],
+             "NMDetectiveB" = sB[ite], "NMDetectiveA (RF)" = sA[ite], "Our model" = pf)
+  reg <- c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE)
+  do.call(rbind, lapply(seq_along(sc), function(i) data.frame(split = k, model = names(sc)[i],
+    AUC = auc(sc[[i]], lab[ite]), R2 = if (reg[i]) r2(y[ite], sc[[i]]) else NA_real_)))
+}
+rep_all <- do.call(rbind, lapply(seq_along(split_sets), function(i) eval_split(split_sets[[i]], i - 1L)))
+prespec <- rep_all[rep_all$split == 0L, ]          # the prespecified split
+rep_tab <- rep_all[rep_all$split > 0L, ]           # the 50 random re-draws
+q <- function(v, p) as.numeric(quantile(v, p, na.rm = TRUE))
+rep_sum <- do.call(rbind, lapply(split(rep_tab, rep_tab$model), function(d) data.frame(model = d$model[1],
+  AUC_median = median(d$AUC), AUC_q05 = q(d$AUC, .05), AUC_q95 = q(d$AUC, .95),
+  R2_median = median(d$R2), R2_q05 = q(d$R2, .05), R2_q95 = q(d$R2, .95),
+  AUC_prespecified = prespec$AUC[prespec$model == d$model[1]],
+  R2_prespecified  = prespec$R2[prespec$model == d$model[1]])))
+rownames(rep_sum) <- NULL; print(rep_sum, digits = 3, row.names = FALSE)
+write.csv(rep_tab, file.path(OUT, "repeated_splits.csv"), row.names = FALSE)
+write.csv(rep_sum, file.path(OUT, "repeated_splits_summary.csv"), row.names = FALSE)
+# percentile of the prespecified split within the 50 re-draws, per model
+pct <- sapply(unique(rep_tab$model), function(m) { d <- rep_tab[rep_tab$model == m, ]
+  c(AUC = mean(d$AUC <= prespec$AUC[prespec$model == m]), R2 = mean(d$R2 <= prespec$R2[prespec$model == m], na.rm = TRUE)) })
+cat("\nPercentile of the prespecified split within the 50 re-draws:\n"); print(round(pct, 2))
+```
+
+## 6b. SHAP (exact TreeSHAP on the final model, training rows)
+
+```{r shap}
+unified <- ranger.unify(rf_full, X_full[tr, ])
+shap_values <- treeshap(unified, X_full[tr, ], verbose = FALSE)$shaps
+imp <- sort(colMeans(abs(shap_values)), decreasing = TRUE); print(round(imp, 4))
+write.csv(data.frame(feature = names(imp), mean_abs_SHAP = imp, permutation_importance = importance(rf_full)[names(imp)]),
+          file.path(OUT, "feature_importance.csv"), row.names = FALSE)
+```
+
+# 7. Per-codon table for plotting
+
+Training codons use grouped-CV out-of-fold predictions; held-out codons use the final model's predictions.
+
+```{r percodon}
+pred_plot <- ifelse(is_test, pred_full, oof_grouped)
+segments_list <- list(c(1, 118), c(214, 270), c(434, 460), c(537, 566), c(626, 656))
+seg_levels <- sapply(segments_list, function(s) paste0(s[1], "-", s[2]))
+seg_of <- function(cd) { s <- rep(NA_character_, length(cd)); for (sg in segments_list) s[cd >= sg[1] & cd <= sg[2]] <- paste0(sg[1], "-", sg[2]); factor(s, levels = seg_levels) }
+
+# PTC-resolved frame. Individual PTCs, not codon averages, are the unit of analysis:
+# averaging the three stop codons at a position hides exactly the stop-codon-specific
+# effects this paper is about (codon 240 TGA measures 0.04 against a codon mean of 0.62).
+ptc <- data.frame(codon = codon, stop = factor(lmna$mutation, levels = c("TAA", "TAG", "TGA")),
+                  actual = y, ours = pred_plot, nmdA = nmdA_scaled, nmdB = nmdB_scaled,
+                  test = is_test, label = lab, segment = seg_of(codon))
+ptc$rule_5055 <- rule_5055; ptc$rule_aenmd <- rule_aenmd; ptc$rule_vep <- rule_vep
+
+# Codon-averaged frame, retained only so the codon-level counts can be reported
+# alongside the PTC-level ones for comparison.
+pc <- aggregate(cbind(actual = y, ours = pred_plot, nmdA = nmdA_scaled, nmdB = nmdB_scaled) ~ codon, FUN = mean)
+pc$test <- pc$codon %in% test_codons
+pc$rule_5055  <- as.integer(LAST_EJC - 3L * pc$codon > 50L)
+pc$rule_aenmd <- as.integer((3L * pc$codon - 3L) >= CSS_PROX & (LAST_EJC - 3L * pc$codon) >= PENULT_PROX_AENMD)
+pc$rule_vep   <- as.integer(3L * pc$codon > VEP_CDS_MAX & 3L * pc$codon < LAST_EJC - VEP_PENULT)
+pc$segment <- seg_of(pc$codon)
+
+# Discordance threshold, now from PTC-resolved values in the active region (training only).
+act_tr_ptc <- ptc$codon >= 25 & ptc$codon <= 635 & !ptc$test
+act_tr_cod <- pc$codon  >= 25 & pc$codon  <= 635 & !pc$test
+DISCORD       <- 2 * sd(ptc$actual[act_tr_ptc])
+DISCORD_CODON <- 2 * sd(pc$actual[act_tr_cod])
+cat(sprintf("Discordance threshold: %.3f per PTC | %.3f per codon mean\n",
+            DISCORD, DISCORD_CODON))
+cat(sprintf("Dataset: %d PTCs across %d codons; %s\n", nrow(ptc), length(unique(ptc$codon)),
+            paste(sprintf("%d codons with %s PTCs", table(table(codon)), names(table(table(codon)))), collapse = ", ")))
+strad <- sort(unique(codon[ave(lab, codon, FUN = function(v) length(unique(v))) > 1]))
+cat(sprintf("Codons whose assayed stop codons straddle the threshold: %d (%s)\n",
+            length(strad), paste(strad, collapse = ", ")))
+cat(sprintf("PTCs whose label differs from their codon mean: %d of %d (%.1f%%)\n",
+            sum(lab != as.integer(ave(y, codon, FUN = mean) > THRESH)), length(y),
+            100 * mean(lab != as.integer(ave(y, codon, FUN = mean) > THRESH))))
+```
+
+# 7b. How many measured sites does a gene-specific model need?
+
+If a gene-specific model requires saturation editing of the whole gene, it is of
+little practical use. This asks the operational question instead: if you can assay
+X PTC sites in a target gene, is it better to train a gene-specific model on them
+or to keep using a genome-wide predictor? Both options are given the *same* X
+sites, since those sites can equally be used to calibrate NMDetectiveA to the gene.
+A fixed evaluation set (30% of codons) is drawn once and never trained on, so every
+X is scored on identical codons; X codons are then drawn from the remaining 70%.
+
+```{r learning-curve, cache=TRUE}
+N_REP_LC <- 40; SIZES <- c(5, 10, 15, 20, 30, 40, 60, 80, 120, 160)
+set.seed(SEED)
+lc_eval <- sort(sample(ucod, round(0.30 * length(ucod))))
+lc_pool <- setdiff(ucod, lc_eval); ie <- which(codon %in% lc_eval)
+cat(sprintf("Learning-curve evaluation set: %d codons (%d PTCs), fixed; sampling pool %d codons\n",
+            length(lc_eval), length(ie), length(lc_pool)))
+# reference: NMDetectiveA calibrated on the entire sampling pool (a best case it
+# could never beat by having more sites, since its ceiling is its own information)
+f0 <- lm(y[codon %in% lc_pool] ~ lmna$NMDetectiveA[codon %in% lc_pool])
+nmdA_pool <- coef(f0)[1] + coef(f0)[2] * lmna$NMDetectiveA
+LC_REF_R2 <- r2(y[ie], nmdA_pool[ie]); LC_REF_AUC <- auc(nmdA_pool[ie], lab[ie])
+X_hybrid <- cbind(X_full, nmdA = lmna$NMDetectiveA)
+lc_rows <- list()
+for (X in SIZES) for (rep in 1:N_REP_LC) {
+  set.seed(SEED * 1000 + X * 10 + rep)
+  # one PTC per sampled codon: a targeted experiment installs a single stop per position
+  tc <- sample(lc_pool, X)
+  it <- unlist(lapply(tc, function(cc) { i <- which(codon == cc); i[sample(length(i), 1)] }))
+  fit <- try(lm(y[it] ~ lmna$NMDetectiveA[it]), silent = TRUE)
+  p_cal <- if (inherits(fit, "try-error") || any(is.na(coef(fit)))) rep(mean(y[it]), length(ie)) else
+    coef(fit)[1] + coef(fit)[2] * lmna$NMDetectiveA[ie]
+  p_rf <- predict_rf(fit_rf(X_full, it), X_full, ie)
+  p_hy <- predict(ranger(y ~ ., data = cbind(X_hybrid[it, ], y = y[it]), num.trees = 500,
+                         min.node.size = 3, seed = SEED), data = X_hybrid[ie, ])$predictions
+  lc_rows[[length(lc_rows) + 1]] <- data.frame(X = X, rep = rep,
+    model = c("NMDetectiveA (calibrated on X sites)", "Gene-specific RF", "Hybrid RF + NMDetectiveA"),
+    R2 = c(r2(y[ie], p_cal), r2(y[ie], p_rf), r2(y[ie], p_hy)),
+    AUC = c(auc(p_cal, lab[ie]), auc(p_rf, lab[ie]), auc(p_hy, lab[ie])))
+}
+lc_raw <- do.call(rbind, lc_rows)
+lc_raw$n_PTCs <- lc_raw$X   # one PTC per sampled codon
+qq <- function(v, p) as.numeric(quantile(v, p, na.rm = TRUE))
+lc <- do.call(rbind, lapply(split(lc_raw, list(lc_raw$X, lc_raw$model), drop = TRUE), function(d)
+  data.frame(X = d$X[1], n_PTCs = d$n_PTCs[1], model = d$model[1],
+             R2_median = median(d$R2, na.rm = TRUE), R2_q05 = qq(d$R2, .05), R2_q95 = qq(d$R2, .95),
+             AUC_median = median(d$AUC, na.rm = TRUE), AUC_q05 = qq(d$AUC, .05), AUC_q95 = qq(d$AUC, .95),
+             frac_beat_ref_R2 = mean(d$R2 > LC_REF_R2, na.rm = TRUE))))
+lc <- lc[order(lc$model, lc$X), ]; rownames(lc) <- NULL
+lc$ref_R2 <- LC_REF_R2; lc$ref_AUC <- LC_REF_AUC
+print(lc, digits = 3, row.names = FALSE)
+write.csv(lc, file.path(OUT, "learning_curve.csv"), row.names = FALSE)
+write.csv(lc_raw, file.path(OUT, "learning_curve_raw.csv"), row.names = FALSE)
+gsel <- lc[lc$model == "Gene-specific RF", ]
+X_CROSS <- gsel$X[which(gsel$R2_median > LC_REF_R2)[1]]
+X_ROBUST <- gsel$X[which(gsel$frac_beat_ref_R2 >= 0.99)[1]]
+cat(sprintf("\nReference (NMDetectiveA, whole-pool calibration): R2 %.3f, AUC %.3f\n", LC_REF_R2, LC_REF_AUC))
+cat(sprintf("Gene-specific RF median exceeds it from X = %d codons (~%d PTCs); exceeds it in >=99%% of draws from X = %d (~%d PTCs)\n",
+            X_CROSS, gsel$n_PTCs[gsel$X == X_CROSS], X_ROBUST, gsel$n_PTCs[gsel$X == X_ROBUST]))
+lc_plot <- function(metric, med, lo, hi, ref, ttl, ylab, ylim, legend = FALSE) {
+  d <- lc; d$model <- factor(d$model,
+    levels = c("NMDetectiveA (calibrated on X sites)", "Gene-specific RF", "Hybrid RF + NMDetectiveA"),
+    labels = c("NMDetectiveA, calibrated on the X sites", "Gene-specific RF", "Hybrid (RF + NMDetectiveA feature)"))
+  ggplot(d, aes(X, .data[[med]], color = model, fill = model)) +
+    geom_hline(yintercept = ref, linetype = "dashed", color = "grey35", linewidth = .4) +
+    geom_ribbon(aes(ymin = .data[[lo]], ymax = .data[[hi]]), alpha = .15, color = NA) +
+    geom_line(linewidth = .7) + geom_point(size = 1.3) +
+    scale_color_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+    scale_fill_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+    scale_x_log10(breaks = c(5, 10, 20, 40, 80, 160)) + coord_cartesian(ylim = ylim) +
+    labs(title = ttl, x = "Codons sampled (1 PTC each)", y = ylab) + theme_fig() +
+    guides(color = guide_legend(ncol = 1), fill = guide_legend(ncol = 1)) +
+    theme(panel.grid.minor = element_blank(), axis.title = element_text(size = 8),
+          legend.position = if (legend) "bottom" else "none", legend.title = element_blank(),
+          legend.text = element_text(size = 8), legend.key.size = unit(.35, "lines"),
+          legend.box.margin = margin(-4, 0, 0, 0))
+}
+```
+
+## Sampling design: which codons a base edit can reach
+
+```{r sampling-design, cache=TRUE}
+# A stop codon can only be installed by a single nucleotide edit if it lies one
+# substitution from the reference codon. In LMNA only 76 of 263 assayed codons
+# have any such stop, and they under-sample the 3' boundary badly, so this
+# constrains both how many and which positions a base-editing experiment reaches.
+lmna$ref_codon <- substring(cds_seq, (lmna$codon - 1) * 3 + 1, (lmna$codon - 1) * 3 + 3)
+lmna$n_edits <- mapply(function(r, m) sum(strsplit(r, "")[[1]] != strsplit(m, "")[[1]]),
+                       lmna$ref_codon, lmna$mutation)
+one_edit <- lmna$n_edits == 1
+pool_edit <- intersect(lc_pool, unique(codon[one_edit]))
+cat(sprintf("Edit-reachable: %d of %d assayed codons; %d of %d in the sampling pool\n",
+            length(unique(codon[one_edit])), length(ucod), length(pool_edit), length(lc_pool)))
+tb <- function(v) table(cut(v, c(0, 118, 270, 460, 566, 656),
+                            labels = c("1-118", "214-270", "434-460", "537-566", "626-656")))
+print(rbind(full_pool = tb(lc_pool), edit_reachable = tb(pool_edit)))
+
+sd_rows <- list()
+for (X in SIZES) for (rep in 1:N_REP_LC) {
+  set.seed(SEED * 1000 + X * 10 + rep)
+  tc <- sample(lc_pool, X)
+  idx_one <- unlist(lapply(tc, function(cc) { i <- which(codon == cc); i[sample(length(i), 1)] }))
+  p_rf <- predict_rf(fit_rf(X_full, idx_one), X_full, ie)
+  sd_rows[[length(sd_rows) + 1]] <- data.frame(X = X, rep = rep, mode = "Any codon",
+    n_PTCs = length(idx_one), R2 = r2(y[ie], p_rf), AUC = auc(p_rf, lab[ie]))
+}
+# The edit-reachable pool is smaller than the full pool, so it gets its own size grid
+# running up to the largest round number the pool supports rather than stopping at 40.
+SIZES_EDIT <- c(SIZES[SIZES <= length(pool_edit)], 50)
+SIZES_EDIT <- sort(unique(SIZES_EDIT[SIZES_EDIT <= length(pool_edit)]))
+cat("Edit-reachable training sizes:", SIZES_EDIT, "(pool =", length(pool_edit), "codons)\n")
+for (X in SIZES_EDIT) for (rep in 1:N_REP_LC) {
+  set.seed(SEED * 2000 + X * 10 + rep)
+  tce <- sample(pool_edit, X)
+  ite <- unlist(lapply(tce, function(cc) { i <- which(codon == cc & one_edit); i[sample(length(i), 1)] }))
+  p_rf <- predict_rf(fit_rf(X_full, ite), X_full, ie)
+  sd_rows[[length(sd_rows) + 1]] <- data.frame(X = X, rep = rep, mode = "Single-edit-reachable codons only",
+    n_PTCs = length(ite), R2 = r2(y[ie], p_rf), AUC = auc(p_rf, lab[ie]))
+}
+sd_raw <- do.call(rbind, sd_rows)
+sd <- do.call(rbind, lapply(split(sd_raw, list(sd_raw$X, sd_raw$mode), drop = TRUE), function(d)
+  data.frame(X = d$X[1], mode = d$mode[1], n_PTCs = round(mean(d$n_PTCs)),
+             R2_median = median(d$R2, na.rm = TRUE), R2_q05 = qq(d$R2, .05), R2_q95 = qq(d$R2, .95),
+             AUC_median = median(d$AUC, na.rm = TRUE), frac_beat = mean(d$R2 > LC_REF_R2, na.rm = TRUE))))
+rownames(sd) <- NULL; sd <- sd[order(sd$mode, sd$X), ]
+print(sd, digits = 3, row.names = FALSE)
+write.csv(sd, file.path(OUT, "sampling_design.csv"), row.names = FALSE)
+write.csv(sd_raw, file.path(OUT, "sampling_design_raw.csv"), row.names = FALSE)
+for (mm in unique(sd$mode)) { h <- sd[sd$mode == mm, ]; i <- which(h$R2_median > LC_REF_R2)[1]
+  cat(sprintf("Crossover vs NMDetectiveA, %-36s %s\n", mm,
+              if (is.na(i)) "not reached" else sprintf("X = %d codons (%d PTCs)", h$X[i], h$n_PTCs[i]))) }
+s1 <- sd[sd$mode == "Any codon", ]; sed <- sd[sd$mode == "Single-edit-reachable codons only", ]
+fmt_at <- function(h, N) if (N %in% h$X) sprintf("%.3f", h$R2_median[h$X == N]) else "     -"
+for (N in sort(union(s1$X, sed$X)))
+  cat(sprintf("  %3d codons: any codon R2 %s | edit-reachable R2 %s\n", N, fmt_at(s1, N), fmt_at(sed, N)))
+```
+
+# 9. Independent gene: BRCA1 (Findlay et al., 2018)
+
+The readout there is relative RNA abundance, not SMG1i-based NMD efficiency, and only
+codons in two disjoint blocks were assayed, so the attainable R2 is lower; the shapes of
+the three curves are the comparable quantity.
+
+```{r brca1, cache=TRUE}
+Btx <- local({ gb <- readLines(file.path(DATA_DIR, "NM_007294.4.gb"))
+  e <- regmatches(gb, regexec("^\\s+exon\\s+(\\d+)\\.\\.(\\d+)", gb))
+  ex <- do.call(rbind, lapply(e[lengths(e) > 0], function(m) as.integer(m[2:3])))
+  cd <- as.integer(regmatches(gb, regexec("^\\s+CDS\\s+(\\d+)\\.\\.(\\d+)", gb))[[grep("^\\s+CDS\\s", gb)]][2:3])
+  list(ec = ex - cd[1] + 1, el = ex[, 2] - ex[, 1] + 1, ncod = (cd[2] - cd[1] + 1) / 3 - 1) })
+bfeat <- function(c) { J <- Btx$ec[-nrow(Btx$ec), 2]; L <- tail(J, 1); nt <- 3 * c
+  e <- which(Btx$ec[, 1] <= nt & nt <= Btx$ec[, 2]); dn <- J[J >= nt]
+  c(nt_from_CDS_start = 3 * (c - 1), nt_to_last_EJC = L - nt,
+    nt_to_next_EJC = if (length(dn)) min(dn) - nt else -1L,
+    nt_from_prev_EJC = nt - (if (e > 1) Btx$ec[e - 1, 2] else 0),
+    exon_length = Btx$el[e], n_downstream_EJCs = length(dn)) }
+bb <- read_excel(file.path(DATA_DIR, "Findlay2018_BRCA1_SupplementaryTable.xlsx"), skip = 2)
+bb$mean.rna.score <- suppressWarnings(as.numeric(bb$mean.rna.score))
+bb <- bb[bb$consequence == "Nonsense" & !is.na(bb$mean.rna.score), ]
+bb$codon <- ceiling(suppressWarnings(as.integer(bb$transcript_position)) / 3)
+bb <- bb[!is.na(bb$codon) & bb$codon >= 1 & bb$codon <= Btx$ncod - 1, ]
+bnm <- read.csv(file.path(DATA_DIR, "NMDetective_BRCA1_per_codon.csv"))
+bb$nmdA <- bnm$NMDetectiveA[match(bb$codon, bnm$codon)]
+bb <- bb[!is.na(bb$nmdA), ]
+bF <- as.data.frame(t(sapply(bb$codon, bfeat)))
+by <- as.numeric(bb$mean.rna.score); bc <- bb$codon; buc <- sort(unique(bc))
+set.seed(SEED); bev <- sort(sample(buc, round(0.30 * length(buc)))); bpool <- setdiff(buc, bev)
+bie <- which(bc %in% bev)
+cat(sprintf("BRCA1: %d PTCs, %d codons; eval %d codons (%d PTCs), pool %d codons\n",
+            nrow(bb), length(buc), length(bev), length(bie), length(bpool)))
+bsz <- c(10, 20, 30, 50); brow <- list()
+for (X in bsz) for (rep in 1:N_REP_LC) {
+  set.seed(SEED * 3000 + X * 10 + rep)
+  tc <- sample(bpool, X)
+  it <- unlist(lapply(tc, function(cc) { i <- which(bc == cc); i[sample(length(i), 1)] }))
+  ff <- function(M) predict(ranger(y ~ ., data = cbind(M[it, , drop = FALSE], y = by[it]),
+                                   num.trees = 500, min.node.size = 3, seed = SEED),
+                            data = M[bie, , drop = FALSE])$predictions
+  fit <- try(lm(by[it] ~ bb$nmdA[it]), silent = TRUE)
+  pc2 <- if (inherits(fit, "try-error") || any(is.na(coef(fit)))) rep(mean(by[it]), length(bie)) else
+    coef(fit)[1] + coef(fit)[2] * bb$nmdA[bie]
+  brow[[length(brow) + 1]] <- rbind(
+    data.frame(X = X, rep = rep, model = "NMDetectiveA, calibrated", R2 = r2(by[bie], pc2)),
+    data.frame(X = X, rep = rep, model = "Gene-specific model", R2 = r2(by[bie], ff(bF))),
+    data.frame(X = X, rep = rep, model = "Gene-specific + NMDetectiveA", R2 = r2(by[bie], ff(cbind(bF, nmdA = bb$nmdA)))))
+}
+braw <- do.call(rbind, brow)
+bsum <- do.call(rbind, lapply(split(braw, list(braw$X, braw$model), drop = TRUE), function(k)
+  data.frame(X = k$X[1], model = k$model[1], R2_median = median(k$R2),
+             R2_q05 = qq(k$R2, .05), R2_q95 = qq(k$R2, .95))))
+rownames(bsum) <- NULL; print(bsum, digits = 3, row.names = FALSE)
+write.csv(bsum, file.path(OUT, "BRCA1_replication.csv"), row.names = FALSE)
+```
+
+# 10. Boundary positions on the full transcript
+
+Where each model's prediction crosses the classification threshold, computed across all
+664 codons so the gaps between assayed regions cannot distort it. For the learned models
+this is a measured property of the output, **not** a rule inside the model.
+
+```{r boundaries}
+allc <- nmdet[order(nmdet$codon), ]
+allc$nmdA <- coef(fitA)[1] + coef(fitA)[2] * allc$NMDetectiveA
+allc$nmdB <- coef(fitB)[1] + coef(fitB)[2] * allc$NMDetectiveB
+grid_rows <- do.call(rbind, lapply(c("TAA", "TAG", "TGA"), function(st) {
+  g <- as.data.frame(t(sapply(allc$codon, pos_features)))
+  g$mutation <- st
+  g$plus4 <- substring(cds_seq, (allc$codon - 1) * 3 + 4, (allc$codon - 1) * 3 + 4)
+  g$plus5 <- substring(cds_seq, (allc$codon - 1) * 3 + 5, (allc$codon - 1) * 3 + 5)
+  g$codon <- allc$codon; g }))
+grid_rows <- grid_rows[grid_rows$plus4 != "" & grid_rows$plus5 != "", ]
+Xg <- cbind(grid_rows[, names(Fpos)], onehot(grid_rows$mutation, "stop"),
+            onehot(grid_rows$plus4, "plus4"), onehot(grid_rows$plus5, "plus5"))
+# The TGA-CT indicator is set from the grid's own sequence context.
+Xg$TGACT <- as.integer(grid_rows$mutation == "TGA" & grid_rows$plus4 == "C" & grid_rows$plus5 == "T")
+for (cn in setdiff(names(X_full), names(Xg))) Xg[[cn]] <- 0
+Xg <- Xg[, names(X_full)]
+grid_rows$pred <- predict(rf_full, data = Xg)$predictions
+allc$ours <- tapply(grid_rows$pred, grid_rows$codon, mean)[as.character(allc$codon)]
+
+# CONVENTION. cross_up reports nt from the CDS start to the last codon that still escapes;
+# cross_down reports nt from the last EJC to the last codon that still triggers. The
+# rule-based rows are read off their own 0/1 vectors and land one codon later at the 5'
+# end (e.g. VEP prints 99 nt for a rule whose cut is at cds_end 101). Both are reported as published.
+cross_up <- function(v, cd = allc$codon) { s <- cd <= 200; cc <- cd[s]
+  i <- which(diff(sign(v[s] - THRESH)) != 0)[1]; if (is.na(i)) NA else 3 * (cc[i] - 1) }
+cross_down <- function(v, cd = allc$codon) { s <- cd >= 300; cc <- cd[s]
+  i <- which(diff(sign(v[s] - THRESH)) != 0); if (!length(i)) NA else LAST_EJC - 3 * cc[tail(i, 1)] }
+sens_cross <- function(v) { r <- sapply(c(.50, .55, .602, .65, .70), function(t) {
+    s <- allc$codon >= 300; cc <- allc$codon[s]
+    i <- which(diff(sign(v[s] - t)) != 0); if (!length(i)) NA else LAST_EJC - 3 * cc[tail(i, 1)] })
+  range(r, na.rm = TRUE) }
+rule_bounds <- function(v) { up <- which(diff(v) == 1)[1]; dn <- which(diff(v) == -1)[1]
+  sprintf("%s / %s", if (is.na(up)) "-" else 3 * allc$codon[up],
+                     if (is.na(dn)) "-" else LAST_EJC - 3 * allc$codon[dn]) }
+emp <- function(v, star = FALSE, cd = allc$codon) sprintf("%d / %d%s", cross_up(v, cd), cross_down(v, cd), if (star) "*" else "")
+emp_5055  <- rule_bounds(as.integer(LAST_EJC - 3L * allc$codon > 50L))
+emp_aenmd <- rule_bounds(as.integer((3L * allc$codon - 3L) >= CSS_PROX &
+                                    (LAST_EJC - 3L * allc$codon) >= PENULT_PROX_AENMD))
+emp_vep   <- rule_bounds(as.integer(3L * allc$codon > VEP_CDS_MAX &
+                                    3L * allc$codon < LAST_EJC - VEP_PENULT))
+emp_A <- emp(allc$nmdA, TRUE); emp_B <- emp(allc$nmdB, TRUE)
+emp_ours <- emp(allc$ours, TRUE); emp_act <- emp(pc$actual, FALSE, pc$codon)
+sA <- sens_cross(allc$nmdA); sB <- sens_cross(allc$nmdB); sO <- sens_cross(allc$ours)
+cat(sprintf("Boundaries (5' nt from CDS start / 3' nt upstream of last EJC)\n  measured %s | NMDetectiveA %s | NMDetectiveB %s | ours %s\n  rules: 50-nt %s | aenmd %s | VEP %s\n",
+            emp_act, emp_A, emp_B, emp_ours, emp_5055, emp_aenmd, emp_vep))
+cat(sprintf("3' crossover across thresholds 0.50-0.70 (nt to EJC): NMDetectiveA %d-%d | NMDetectiveB %d-%d | ours %d-%d\n",
+            sA[1], sA[2], sB[1], sB[2], sO[1], sO[2]))
+```
+
+# 11. Figure 7
+
+```{r figure7, fig.width=6.5, fig.height=8.75}
+STOPCOL <- c(TAA = COL_ACT, TAG = COL_TEST, TGA = COL_PRED)
+STOPSHP <- c(TAA = 21, TAG = 24, TGA = 22)
+
+# Misclassification is counted per PTC. The codon-averaged counts are kept alongside
+# only for comparison; averaging moves codon 240 (TGA 0.04, mean 0.62) across the
+# threshold and scores every model as correct there.
+err_ptc <- list("50-nt rule" = ptc$rule_5055, "aenmd" = ptc$rule_aenmd, "VEP" = ptc$rule_vep,
+                "NMDetectiveB" = as.integer(ptc$nmdB > THRESH),
+                "NMDetectiveA" = as.integer(ptc$nmdA > THRESH),
+                "Our model"    = as.integer(ptc$ours > THRESH))
+n_ptc <- sapply(err_ptc, function(p) sum(p != ptc$label))
+true_c <- as.integer(pc$actual > THRESH)
+err_cod <- list("50-nt rule" = pc$rule_5055, "aenmd" = pc$rule_aenmd, "VEP" = pc$rule_vep,
+                "NMDetectiveB" = as.integer(pc$nmdB > THRESH),
+                "NMDetectiveA" = as.integer(pc$nmdA > THRESH),
+                "Our model"    = as.integer(pc$ours > THRESH))
+n_cod <- sapply(err_cod, function(p) sum(p != true_c))
+mis <- data.frame(Model = names(n_ptc),
+                  codons_wrong = as.integer(n_cod), pct_codons = round(100 * n_cod / nrow(pc), 1),
+                  PTCs_wrong  = as.integer(n_ptc), pct_PTCs   = round(100 * n_ptc / nrow(ptc), 1))
+print(mis, row.names = FALSE)
+write.csv(mis, file.path(OUT, "misclassification_by_unit.csv"), row.names = FALSE)
+
+## Panel A -------------------------------------------------------------------
+fmt <- function(v, lo, hi) ifelse(is.na(v), "-", sprintf("%.2f\n[%.2f-%.2f]", v, lo, hi))
+key <- c("50-55nt rule alone", "aenmd rules", "VEP predictor", "NMDetectiveB", "NMDetectiveA (RF)", "Our model")
+rows <- rbind(
+ c("50-nt rule",   "Rules-based",   "Imposed",        emp_5055,  n_ptc[["50-nt rule"]]),
+ c("aenmd",        "Rules-based",   "Imposed",        emp_aenmd, n_ptc[["aenmd"]]),
+ c("VEP",          "Rules-based",   "Imposed",        emp_vep,   n_ptc[["VEP"]]),
+ c("NMDetectiveB", "Decision tree", "Learned (TCGA)", emp_B,     n_ptc[["NMDetectiveB"]]),
+ c("NMDetectiveA", "Random forest", "Learned (TCGA)", emp_A,     n_ptc[["NMDetectiveA"]]),
+ c("Our model",    "Random forest", "Learned (LMNA)", emp_ours,  n_ptc[["Our model"]]))
+rs <- rep_sum; rownames(rs) <- rs$model
+tabA <- data.frame(rows,
+  fmt(rs[key, "AUC_median"], rs[key, "AUC_q05"], rs[key, "AUC_q95"]),
+  fmt(rs[key, "R2_median"],  rs[key, "R2_q05"],  rs[key, "R2_q95"]), stringsAsFactors = FALSE)
+colnames(tabA) <- c("Model", "Type", "Positional\nboundaries", "Boundary on LMNA\n(start / EJC, nt)",
+                    "PTCs\nmisclassified\n(FP + FN, of 763)", "AUC\nmed. [5-95%]", "R2\nmed. [5-95%]")
+nr <- nrow(tabA); nc <- ncol(tabA); ours <- nr
+fill <- matrix("white", nr, nc); fill[seq(1, nr, 2), ] <- "#F5F5F5"; fill[ours, ] <- COL_ACT
+col  <- matrix("#1A1A1A", nr, nc); col[ours, ] <- "white"
+face <- matrix("plain", nr, nc); face[, c(1, nc - 2, nc - 1, nc)] <- "bold"
+fs   <- matrix(6, nr, nc); fs[, 1] <- 8
+tt <- ttheme_minimal(base_size = 6,
+  core = list(bg_params = list(fill = fill, col = "white", lwd = 1),
+              fg_params = list(col = col, fontface = face, fontsize = as.vector(fs),
+                               hjust = c(rep(0, nr), rep(.5, nr * (nc - 1))),
+                               x = c(rep(.03, nr), rep(.5, nr * (nc - 1))))),
+  colhead = list(bg_params = list(fill = "#D8D8D8", col = "white", lwd = 1),
+                 fg_params = list(fontface = "bold", fontsize = c(8, rep(6, nc - 1)))))
+tgA <- tableGrob(tabA, rows = NULL, theme = tt)
+tgA$widths  <- unit(c(2.40, 2.00, 2.10, 2.40, 2.20, 1.70, 1.70), "cm")
+tgA$heights <- unit(c(1.00, rep(.64, nr)), "cm")
+panel_A <- arrangeGrob(tgA, top = textGrob("A", x = unit(.01, "npc"), hjust = 0,
+                                           gp = gpar(fontface = "bold", fontsize = 12)))
+
+## Panel B : comparators collapsed (position-only, so identical across stops) --
+# The five comparators score a codon, not a stop codon: their prediction is the same
+# for TAA/TAG/TGA at every one of the 263 codons. Their three rows would therefore
+# differ only where the *measured* label differs between stops (21 straddling codons),
+# so each is drawn as a single row, marked as an error if any PTC at that codon is
+# misclassified. No codon carries both an FP and an FN for any comparator, so the
+# collapsed row is unambiguous. Only our model, which can resolve stop identity,
+# keeps three rows.
+COMPARATORS <- setdiff(names(err_ptc), "Our model")
+err_long <- do.call(rbind, lapply(names(err_ptc), function(m) {
+  d <- data.frame(codon = ptc$codon, segment = ptc$segment, stop = as.character(ptc$stop),
+                  model = m, class = ifelse(err_ptc[[m]] == ptc$label, "Correct",
+                                            ifelse(err_ptc[[m]] == 1, "FP", "FN")),
+                  stringsAsFactors = FALSE)
+  if (m %in% COMPARATORS) {
+    stopifnot(!any(tapply(d$class, d$codon, function(v) all(c("FP", "FN") %in% v))))
+    d <- do.call(rbind, lapply(split(d, d$codon), function(g) {
+      g$stop <- "All"
+      g$class <- if (any(g$class == "FP")) "FP" else if (any(g$class == "FN")) "FN" else "Correct"
+      g[1, , drop = FALSE] }))
+  }
+  d }))
+# Held-out codons are a property of the data split, not of any one model, so the
+# marking appears once as its own track rather than repeated on all six rows.
+ho <- unique(ptc[ptc$test & !is.na(ptc$segment), c("codon", "segment")])
+ho$stop <- ""; ho$model <- "Held out"; ho$class <- "Heldout"   # not a stop-codon category
+err_long <- rbind(err_long, ho[, names(err_long)])
+err_long$model <- factor(err_long$model, levels = c(names(err_ptc), "Held out"))
+err_long$stop  <- factor(err_long$stop, levels = c("", "All", "TGA", "TAG", "TAA"))
+cat(sprintf("Held-out codons marked in panel B: %d\n", nrow(ho)))
+LAB <- c(Correct = "Correct", FP = "False positive (predicted triggering, escapes)",
+         FN = "False negative (predicted escape, triggers)", Heldout = "Held-out codon")
+make_panel_B <- function(border = TRUE) {
+  g <- ggplot(err_long, aes(codon, stop, color = class, shape = class)) +
+    geom_point(size = 1.15) +
+    scale_color_manual(values = c(Correct = "#D9D9D9", FP = "#E0733A",
+                                  FN = "#4A6FA5", Heldout = COL_TEST),
+                       breaks = names(LAB), labels = LAB, name = NULL) +
+    scale_shape_manual(values = c(Correct = 15, FP = 15, FN = 15, Heldout = 17),
+                       breaks = names(LAB), labels = LAB, name = NULL) +
+    facet_grid(model ~ segment, scales = "free", space = "free", switch = "y") +
+    scale_x_continuous(breaks = c(0, 60, 240, 450, 550, 640)) +
+    labs(title = "B", x = "Codon position in CDS", y = NULL) + theme_fig() +
+    guides(color = guide_legend(nrow = 1, override.aes = list(size = 1.6)),
+           shape = guide_legend(nrow = 1)) +
+    theme(legend.position = "top", legend.key.size = unit(.35, "lines"),
+          strip.text.x = element_blank(), strip.placement = "outside",
+          strip.text.y.left = element_text(angle = 0, hjust = 1, size = 7),
+          legend.margin = margin(0, 0, 0, 0), legend.box.margin = margin(0, 0, -4, 0),
+          legend.text = element_text(size = 6.5, margin = margin(r = 4)),
+          axis.text.y = element_text(size = 6.5), panel.spacing.y = unit(.14, "lines"),
+          plot.margin = margin(8, 3, 2, 6))
+  if (!border) g <- g + theme(panel.border = element_blank(),
+                              axis.line.x = element_line(colour = "grey25", linewidth = .3))
+  g
+}
+panel_B    <- make_panel_B(TRUE)
+panel_B_nb <- make_panel_B(FALSE)
+
+## Panels C and D : every PTC, not codon means -------------------------------
+ptc_panel <- function(predcol, letter, show_leg) {
+  x <- ptc[!is.na(ptc$segment), ]; x$pred <- x[[predcol]]
+  # NMDetectiveA/B scores are published per nucleotide position, so their three
+  # curves coincide; draw one neutral line in that case rather than three overplotted.
+  varies <- any(tapply(x$pred, x$codon, function(v) length(unique(round(v, 9)))) > 1)
+  x$disc <- abs(x$actual - x$pred) > DISCORD
+  dc <- unique(x[x$disc, c("codon", "segment")])
+  ggplot(x, aes(codon)) +
+    { if (nrow(dc)) geom_rect(data = dc, aes(xmin = codon - .5, xmax = codon + .5, ymin = -Inf, ymax = Inf),
+                              fill = COL_DISC, alpha = .15, inherit.aes = FALSE) } +
+    # Measured PTCs are drawn first and semi-transparent so that the prediction
+    # line, drawn last over a white halo, stays readable through the dense regions.
+    geom_point(aes(y = actual, colour = stop, shape = stop,
+                   fill = ifelse(test, "white", NA)), size = 1.15, stroke = .4, alpha = .5) +
+    geom_line(aes(y = pred, group = stop), colour = "white", linewidth = 1.25, alpha = .9) +
+    { if (varies) geom_line(aes(y = pred, colour = stop, group = stop), linewidth = .55)
+      else geom_line(aes(y = pred, group = stop), colour = "grey25", linewidth = .6) } +
+    scale_colour_manual(values = STOPCOL, name = NULL) +
+    scale_shape_manual(values = STOPSHP, name = NULL) +
+    scale_fill_identity(guide = "none") +
+    facet_grid(~segment, scales = "free_x", space = "free_x") +
+    coord_cartesian(ylim = c(-.12, 1.05)) +
+    scale_x_continuous(breaks = c(0, 60, 240, 450, 550, 640)) +
+    labs(title = letter, x = "Codon position in CDS", y = "NMD efficiency") + theme_fig() +
+    guides(colour = guide_legend(nrow = 1, override.aes = list(linetype = 0, size = 1.8, alpha = 1)),
+           shape = guide_legend(nrow = 1)) +
+    theme(legend.position = if (show_leg) "top" else "none",
+          legend.key.size = unit(.4, "lines"), legend.margin = margin(0, 0, 0, 0),
+          legend.box.margin = margin(0, 0, -5, 0), legend.text = element_text(size = 7, margin = margin(r = 6)),
+          panel.spacing = unit(.4, "lines"))
+}
+panel_C <- ptc_panel("nmdA", "C", TRUE)
+panel_D <- ptc_panel("ours", "D", FALSE)
+cat(sprintf("Discordant PTCs: ours %d/%d, NMDetectiveA %d/%d (codons with >=1: %d and %d)\n",
+            sum(abs(ptc$actual - ptc$ours) > DISCORD), nrow(ptc),
+            sum(abs(ptc$actual - ptc$nmdA) > DISCORD), nrow(ptc),
+            length(unique(ptc$codon[abs(ptc$actual - ptc$ours) > DISCORD])),
+            length(unique(ptc$codon[abs(ptc$actual - ptc$nmdA) > DISCORD]))))
+
+## Panel E -------------------------------------------------------------------
+lcp <- lc
+lcp$model <- factor(lcp$model, levels = c("NMDetectiveA (calibrated on X sites)", "Gene-specific RF",
+                                          "Hybrid RF + NMDetectiveA"),
+  labels = c("NMDetectiveA, calibrated", "Gene-specific model", "Hybrid model"))
+panel_E <- ggplot(lcp, aes(X, R2_median, color = model, fill = model)) +
+  geom_hline(yintercept = lcp$ref_R2[1], linetype = "dashed", color = "grey35", linewidth = .4) +
+  geom_ribbon(aes(ymin = R2_q05, ymax = R2_q95), alpha = .15, color = NA) +
+  geom_line(linewidth = .7) + geom_point(size = 1.3) +
+  scale_color_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_fill_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_x_log10(breaks = c(10, 40, 160), expand = expansion(mult = c(.10, .14))) +
+  coord_cartesian(ylim = c(-.2, .95)) +
+  labs(title = "E", x = "Codons sampled", y = expression("Variance explained ("*R^2*")")) +
+  theme_fig() + guides(color = guide_legend(ncol = 1), fill = guide_legend(ncol = 1)) +
+  theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 6, margin = margin(r = 2)), legend.key.size = unit(.3, "lines"),
+        legend.box.margin = margin(-4, 0, 0, -6), plot.margin = margin(2, 2, 2, 2))
+
+cd_block <- arrangeGrob(panel_C, panel_D, ncol = 1)
+bottom   <- arrangeGrob(cd_block, panel_E, ncol = 2, widths = c(.75, .25))
+HTS <- unit(c(2.15, 2.55, 4.05), "in")
+figure7    <- arrangeGrob(panel_A, panel_B,    bottom, ncol = 1, heights = HTS)
+figure7_nb <- arrangeGrob(panel_A, panel_B_nb, bottom, ncol = 1, heights = HTS)
+for (ext in c("png", "pdf")) {
+  ggsave(paste0("Figure7_main.", ext), figure7, width = 6.5, height = 8.75, dpi = 300, bg = "white")
+  ggsave(paste0("Figure7_main_noBorderB.", ext), figure7_nb, width = 6.5, height = 8.75, dpi = 300, bg = "white")
+}
+grid.newpage(); grid.draw(figure7)
+```
+
+# 11b. Cross-gene transfer: LMNA-trained model applied to BRCA1
+
+The six positional features are computable in any transcript, so transfer is directly testable:
+train on LMNA only and predict BRCA1 without any BRCA1 training. BRCA1's readout (relative RNA
+abundance) is inverted in sign and on a different scale from NMD efficiency, so the comparable
+statistic is |Spearman|. The transferred model uses the positional features alone, so that the
+test is confined to positional structure; adding stop identity and the +4/+5 context leaves
+|rho| unchanged at 0.61.
+
+```{r transfer, cache=TRUE}
+sp <- function(a, b) suppressWarnings(cor(a, b, method = "spearman"))
+fit_pos_only <- function(X, yy, idx)
+  ranger(yy ~ ., data = cbind(X[idx, , drop = FALSE], yy = yy[idx]),
+         num.trees = 500, min.node.size = 3, seed = SEED)
+tr_B <- predict(fit_pos_only(Fpos, y, seq_len(n)), data = bF)$predictions
+rho_model <- abs(sp(tr_B, by)); rho_nmdA <- abs(sp(bb$nmdA, by))
+# paired bootstrap over codons, the independent unit in BRCA1
+bidx <- split(seq_along(bc), bc); bucn <- names(bidx)
+set.seed(SEED)
+gapv <- replicate(2000, { i <- unlist(bidx[sample(bucn, length(bucn), replace = TRUE)], use.names = FALSE)
+  abs(sp(tr_B[i], by[i])) - abs(sp(bb$nmdA[i], by[i])) })
+transfer <- data.frame(direction = "LMNA-trained -> BRCA1",
+  rho_model = rho_model, rho_nmdA = rho_nmdA,
+  gap_median = median(gapv, na.rm = TRUE),
+  gap_lo = quantile(gapv, .025, na.rm = TRUE), gap_hi = quantile(gapv, .975, na.rm = TRUE),
+  p_better = mean(gapv > 0, na.rm = TRUE), row.names = NULL)
+print(transfer, digits = 3, row.names = FALSE)
+cat("  gap_* is |rho| of the transferred model minus |rho| of NMDetectiveA on the same BRCA1 codons,\n")
+cat("  from a paired bootstrap over codons. The interval includes zero.\n")
+write.csv(transfer, file.path(OUT, "cross_gene_transfer.csv"), row.names = FALSE)
+```
+
+# 12. Figure S7
+
+```{r figureS7, fig.width=10, fig.height=13.0}
+## A: classification cutoff
+kde <- density(y[is_train], bw = .05, n = 2048, from = -.2, to = 1)
+gdf <- data.frame(x = grid, c1 = w[1] * dnorm(grid, mu[1], sg[1]), c2 = w[2] * dnorm(grid, mu[2], sg[2]))
+pA <- ggplot() + geom_area(data = data.frame(x = kde$x, yv = kde$y), aes(x, yv), fill = "#B7B7B7", alpha = .45) +
+  geom_line(data = gdf, aes(x, c1), color = "#5B8FD1", linewidth = .9) +
+  geom_line(data = gdf, aes(x, c2), color = COL_ACT, linewidth = .9) +
+  geom_vline(xintercept = THRESH, color = "#C0392B", linetype = "dotted", linewidth = .9) +
+  annotate("text", x = THRESH - .03, y = max(kde$y) * .6, label = sprintf("Cutoff %.2f", THRESH),
+           color = "#C0392B", size = 2.9, hjust = 1) +
+  annotate("text", x = .05, y = max(kde$y) * .30, label = "NMD-\nescaping", color = "#5B8FD1",
+           size = 2.5, hjust = 0, lineheight = .9) +
+  annotate("text", x = .88, y = max(kde$y) * .75, label = "NMD-\ntriggering", color = COL_ACT,
+           size = 2.5, hjust = 1, lineheight = .9) +
+  labs(title = "A", x = "Measured NMD efficiency", y = "Density") + theme_fig()
+
+## B: SHAP beeswarm
+clean <- function(v) { v <- sub("^nt_from_CDS_start$", "nt from CDS start", v)
+  v <- sub("^nt_to_last_EJC$", "nt to last junction", v); v <- sub("^nt_to_next_EJC$", "nt to next junction", v)
+  v <- sub("^nt_from_prev_EJC$", "nt from previous junction", v)
+  v <- sub("^n_downstream_EJCs$", "no. downstream junctions", v)
+  v <- sub("^exon_length$", "length of containing exon", v); v <- sub("^TGACT$", "TGA-CT context", v)
+  v <- sub("^stop_", "stop = ", v); v <- sub("^plus4_", "+4 = ", v); v <- sub("^plus5_", "+5 = ", v); v }
+Xt <- X_full[tr, ]; lv <- clean(names(imp))
+shap_long <- do.call(rbind, lapply(names(imp), function(f) {
+  val <- Xt[[f]]; rg <- range(val)
+  data.frame(feature = factor(clean(f), levels = rev(lv)), shap = shap_values[, f],
+             vnorm = if (diff(rg) == 0) .5 else (val - rg[1]) / diff(rg)) }))
+pB <- ggplot(shap_long, aes(shap, feature, colour = vnorm)) +
+  geom_vline(xintercept = 0, colour = "grey60", linewidth = .35) +
+  geom_quasirandom(orientation = "y", method = "quasirandom", size = .35, alpha = .85, width = .38) +
+  scale_colour_gradientn(colours = c("#2F6355", COL_ACT, "#8E9273", COL_PRED, "#A4611F"),
+    breaks = c(0, 1), labels = c("Low", "High"), name = "Feature value",
+    guide = guide_colourbar(barwidth = .32, barheight = 5.2, ticks = FALSE, title.position = "right",
+                            title.theme = element_text(angle = -90, size = 7, hjust = .5))) +
+  labs(title = "B", x = "SHAP value (impact on predicted NMD efficiency)", y = NULL) + theme_fig() +
+  theme(panel.grid.major.y = element_line(colour = "grey92", linewidth = .3, linetype = "dotted"),
+        axis.text.y = element_text(size = 7), legend.position = "right",
+        legend.text = element_text(size = 7), legend.margin = margin(0, 0, 0, -2))
+
+## C: how far the model can reach
+sw <- sweep
+sw$block <- factor(sw$block, levels = c("1", "3", "5", "10", "20", "30", "50", "tile"),
+                   labels = c("1", "3", "5", "10", "20", "30", "50", "whole\nregion"))
+swl <- rbind(data.frame(block = sw$block, model = "Our model", R2 = sw$R2),
+             data.frame(block = sw$block, model = "NMDetectiveA (fixed reference)", R2 = NMDA_REF))
+swl$model <- factor(swl$model, levels = c("Our model", "NMDetectiveA (fixed reference)"))
+pC <- ggplot(swl, aes(block, R2, group = model, colour = model, linetype = model)) +
+  geom_hline(yintercept = 0, colour = "grey70", linewidth = .3) +
+  geom_errorbar(data = sw, inherit.aes = FALSE, aes(x = block, ymin = R2_lo, ymax = R2_hi),
+                width = .2, colour = COL_ACT) +
+  geom_line(linewidth = .6) +
+  geom_point(data = swl[swl$model == "Our model", ], size = 1.6, show.legend = FALSE) +
+  scale_colour_manual(values = c("Our model" = COL_ACT,
+                                 "NMDetectiveA (fixed reference)" = "grey55")) +
+  scale_linetype_manual(values = c("Our model" = "solid",
+                                   "NMDetectiveA (fixed reference)" = "dashed")) +
+  labs(title = "C", x = "Size of the hidden stretch (codons)",
+       y = expression("Variance explained ("*R^2*")")) + theme_fig() +
+  guides(colour = guide_legend(ncol = 1), linetype = guide_legend(ncol = 1)) +
+  theme(axis.text.x = element_text(size = 7), legend.position = "bottom",
+        legend.title = element_blank(), legend.text = element_text(size = 6),
+        legend.key.size = unit(.55, "lines"), legend.box.margin = margin(-6, 0, 0, 0))
+
+## D: the two transitions
+# Fitted on individual PTCs rather than codon means, matching Fig. 7C,D. The
+# midpoints are unchanged to two decimals: least squares on equal-sized group
+# means and on all members share a minimiser, and almost every codon has 3 PTCs.
+pcp <- ptc[!ptc$test, ]
+logi <- function(x, p) p[1] + (p[2] - p[1]) / (1 + exp(-(x - p[3]) / p[4]))
+bump <- function(x, p) (p[1] + p[2] * exp(-(x - p[3])^2 / (2 * p[4]^2))) / (1 + exp((x - p[5]) / p[6]))
+fit_ls <- function(fn, dd, st, lo, hi) optim(st, function(p) sum((dd$actual - fn(dd$codon, p))^2),
+                                             method = "L-BFGS-B", lower = lo, upper = hi)$par
+p5 <- fit_ls(logi, pcp[pcp$codon <= 118, ], c(0, .85, 23, 1.5), c(-.2, .5, 10, .1), c(.3, 1, 40, 10))
+p3 <- fit_ls(bump, pcp[pcp$codon >= 626, ], c(.1, .7, 633, 4, 640, 2), c(0, 0, 626, .5, 630, .2), c(1, 1, 645, 15, 650, 5))
+z5 <- data.frame(codon = seq(1, 60, .25)); z5$fit <- logi(z5$codon, p5)
+z3 <- data.frame(codon = seq(626, 656, .25)); z3$fit <- bump(z3$codon, p3)
+zoom <- function(lo, hi, zf, ttl, leg) ggplot(ptc[ptc$codon >= lo & ptc$codon <= hi, ], aes(codon)) +
+  geom_point(aes(y = actual, color = "Measured", shape = test), size = 1.25, alpha = .5) +
+  geom_step(aes(y = ours, color = "Our model", group = stop), direction = "mid", linewidth = .5, alpha = .75) +
+  geom_line(data = zf, aes(y = fit, color = "Fitted transition"), linetype = "dashed") +
+  scale_color_manual(values = c(Measured = COL_ACT, "Our model" = COL_PRED, "Fitted transition" = "black"), name = NULL) +
+  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 1), guide = "none") +
+  labs(title = ttl, x = "Codon", y = "NMD efficiency") + theme_fig() +
+  guides(color = guide_legend(override.aes = list(alpha = 1))) +
+  theme(legend.position = if (leg) "top" else "none", legend.key.size = unit(.4, "lines"),
+        legend.text = element_text(size = 7, margin = margin(r = 5)), legend.box.margin = margin(0, 0, -5, 0))
+pD1 <- zoom(1, 60, z5, "D", TRUE); pD2 <- zoom(626, 656, z3, "", FALSE)
+
+## E: spread across the 50 held-out sets
+show <- c("VEP predictor", "NMDetectiveA (RF)", "Our model")
+rp <- rep_tab[rep_tab$model %in% show, ]; rp$model <- factor(rp$model, levels = show)
+rl <- rbind(data.frame(model = rp$model, metric = "Codon ranking (AUC)", value = rp$AUC),
+            data.frame(model = rp$model, metric = "Variance explained (R2)", value = rp$R2))
+rl <- rl[!is.na(rl$value), ]
+pE <- ggplot(rl, aes(model, value)) + geom_boxplot(aes(fill = model), width = .6, outlier.size = .5, linewidth = .3) +
+  facet_wrap(~metric, scales = "free_y") +
+  scale_fill_manual(values = c("grey80", "grey60", COL_ACT), guide = "none") +
+  scale_x_discrete(labels = c("VEP", "NMDet.A", "Ours")) +
+  labs(title = "E", x = NULL, y = "Value on held-out codons") + theme_fig() +
+  theme(axis.text.x = element_text(size = 7))
+
+## F: classification vs sample size
+pF <- ggplot(lcp, aes(X, AUC_median, color = model, fill = model)) +
+  geom_hline(yintercept = lcp$ref_AUC[1], linetype = "dashed", color = "grey35", linewidth = .4) +
+  geom_ribbon(aes(ymin = AUC_q05, ymax = AUC_q95), alpha = .15, color = NA) +
+  geom_line(linewidth = .7) + geom_point(size = 1.3) +
+  scale_color_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_fill_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_x_log10(breaks = c(5, 10, 20, 40, 80, 160)) + coord_cartesian(ylim = c(.4, 1)) +
+  labs(title = "F", x = "Codons sampled (1 PTC each)", y = "Codon ranking (AUC)") + theme_fig() +
+  guides(color = guide_legend(ncol = 1), fill = guide_legend(ncol = 1)) +
+  theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 7), legend.key.size = unit(.35, "lines"),
+        legend.box.margin = margin(-4, 0, 0, 0))
+
+## G: edit-reachable sampling
+pG <- ggplot(sd, aes(X, R2_median, color = mode, fill = mode)) +
+  geom_hline(yintercept = LC_REF_R2, linetype = "dashed", color = "grey35", linewidth = .4) +
+  geom_ribbon(aes(ymin = R2_q05, ymax = R2_q95), alpha = .15, color = NA) +
+  geom_line(linewidth = .7) + geom_point(size = 1.3) +
+  scale_color_manual(values = c(COL_PRED, COL_EDIT), labels = c("Any codon", "Single-edit reachable")) +
+  scale_fill_manual(values = c(COL_PRED, COL_EDIT), labels = c("Any codon", "Single-edit reachable")) +
+  scale_x_log10(breaks = c(5, 10, 20, 30, 40, 60, 80)) + coord_cartesian(ylim = c(-.2, .95)) +
+  labs(title = "G", x = "Codons sampled (1 PTC each)", y = expression("Variance explained ("*R^2*")")) +
+  theme_fig() + guides(color = guide_legend(ncol = 1), fill = guide_legend(ncol = 1)) +
+  theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 7), legend.key.size = unit(.35, "lines"),
+        legend.box.margin = margin(-4, 0, 0, 0))
+
+## H: BRCA1
+bs <- bsum
+bs$model <- factor(bs$model, levels = c("NMDetectiveA, calibrated", "Gene-specific model",
+                                        "Gene-specific + NMDetectiveA"))
+pH <- ggplot(bs, aes(X, R2_median, color = model, fill = model)) +
+  geom_ribbon(aes(ymin = R2_q05, ymax = R2_q95), alpha = .15, color = NA) +
+  geom_line(linewidth = .7) + geom_point(size = 1.3) +
+  scale_color_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_fill_manual(values = c("grey55", COL_ACT, COL_PRED)) +
+  scale_x_log10(breaks = c(10, 20, 30, 50)) + coord_cartesian(ylim = c(-.2, .95)) +
+  labs(title = "H", x = "BRCA1 codons sampled", y = expression("Variance explained ("*R^2*")")) +
+  theme_fig() + guides(color = guide_legend(ncol = 1), fill = guide_legend(ncol = 1)) +
+  theme(panel.grid.minor = element_blank(), legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 7), legend.key.size = unit(.35, "lines"),
+        legend.box.margin = margin(-4, 0, 0, 0))
+
+
+## I, J: cross-gene transfer scatters
+tdf <- rbind(data.frame(score = bb$nmdA, yv = by, who = "I"),
+             data.frame(score = tr_B,    yv = by, who = "J"))
+scat <- function(w, col, ttl, xlab, rho)
+  ggplot(subset(tdf, who == w), aes(score, yv)) +
+    geom_point(size = .9, colour = col, alpha = .8) +
+    geom_smooth(method = "loess", formula = y ~ x, span = 1.6, se = FALSE,
+                colour = "grey25", linewidth = .6) +
+    annotate("text", x = Inf, y = Inf, hjust = 1.08, vjust = 1.6, size = 3, colour = col,
+             fontface = "bold", label = sprintf("|\u03c1| = %.2f", rho)) +
+    labs(title = ttl, x = xlab, y = "BRCA1 RNA score") +
+    theme_fig() + theme(panel.grid.minor = element_blank())
+pI <- scat("I", "grey45", "I", "NMDetectiveA score", rho_nmdA)
+pJ <- scat("J", COL_ACT,  "J", "Predicted NMD efficiency (LMNA-trained)", rho_model)
+
+figureS7 <- arrangeGrob(
+  arrangeGrob(pA, pB, pC, ncol = 3, widths = c(.30, .40, .30)),
+  arrangeGrob(pD1, pD2, pE, ncol = 3, widths = c(.38, .28, .34)),
+  arrangeGrob(pF, pG, pH, ncol = 3, widths = c(.33, .33, .34)),
+  arrangeGrob(pI, pJ, grid::nullGrob(), ncol = 3, widths = c(.33, .33, .34)),
+  ncol = 1, heights = c(1, 1, 1, .85))
+for (ext in c("png", "pdf")) ggsave(paste0("FigureS7_supplementary.", ext), figureS7,
+                                    width = 10, height = 13.0, dpi = 300, bg = "white")
+grid.newpage(); grid.draw(figureS7)
+```
+
+# 13. Table S7
+
+```{r tableS7}
+tabS7 <- data.frame(
+  codon = lmna$codon, mutation = lmna$mutation,
+  mean_NMD_efficiency = lmna$mean_NMD_efficiency, sd_NMD_efficiency = lmna$sd_NMD_efficiency,
+  region = c("5' inactive", "active", "3' inactive")[1 + (codon >= 25) + (codon > 635)],
+  plus4 = lmna$plus4, plus5 = lmna$plus5,
+  X_full[, c("nt_from_CDS_start", "nt_to_last_EJC", "nt_to_next_EJC",
+             "nt_from_prev_EJC", "exon_length", "n_downstream_EJCs")],
+  TGACT = X_full$TGACT,
+  rule5055_pred = rule_5055, aenmd_pred = rule_aenmd, vep_pred = rule_vep,
+  NMDetectiveA = lmna$NMDetectiveA, NMDetectiveB = lmna$NMDetectiveB,
+  true_label = lab, heldout_set = ifelse(is_test, "held-out", "training"),
+  rf_pred = pred_plot, stringsAsFactors = FALSE)
+keyS7 <- data.frame(Column = names(tabS7), Description = c(
+ "Codon position in the LMNA coding sequence (NM_170707.4)",
+ "Stop-codon identity introduced at this position (TAA, TAG, or TGA)",
+ "Measured NMD efficiency, defined as 1 - (DMSO/SMG1i), averaged across replicate SNVs",
+ "Standard deviation of NMD efficiency across replicate SNVs",
+ "5' inactive / active / 3' inactive assignment. Descriptive annotation only; NOT a model input",
+ "Nucleotide at the +4 position, immediately downstream of the PTC",
+ "Nucleotide at the +5 position",
+ "Model feature: nucleotides from the CDS start to the PTC",
+ "Model feature: nucleotides from the PTC to the last exon-exon junction",
+ "Model feature: nucleotides to the nearest downstream exon-exon junction (-1 if none)",
+ "Model feature: nucleotides from the nearest upstream exon-exon junction",
+ "Model feature: length of the exon containing the PTC, including untranslated sequence for exon 1",
+ "Model feature: number of exon-exon junctions downstream of the PTC",
+ "Model feature: 1 if a TGA stop is followed by C at +4 and T at +5, else 0",
+ "Canonical 50-nt rule call (1 = NMD-triggering, 0 = NMD-escaping)",
+ "aenmd rule-set call (1 = NMD-triggering, 0 = NMD-escaping)",
+ "VEP NMD predictor call (1 = NMD-triggering, 0 = NMD-escaping)",
+ "NMDetectiveA score, published per nucleotide position and therefore identical for the three stop codons at a codon",
+ "NMDetectiveB score, published per nucleotide position and therefore identical for the three stop codons at a codon",
+ sprintf("Ground-truth class from the Gaussian-mixture threshold of %.3f (1 = NMD-triggering, 0 = NMD-escaping)", THRESH),
+ "Training or held-out portion of the prespecified split used for Figs. 7B-D",
+ "Random forest prediction: codon-grouped out-of-fold for training codons, final-model for held-out codons"),
+ stringsAsFactors = FALSE)
+stopifnot(nrow(keyS7) == ncol(tabS7))
+wbS7 <- createWorkbook()
+addWorksheet(wbS7, "TableS7_NMD-modeling"); writeData(wbS7, 1, tabS7)
+addWorksheet(wbS7, "Key"); writeData(wbS7, 2, keyS7)
+setColWidths(wbS7, 2, cols = 1:2, widths = c(29, 117))
+modifyBaseFont(wbS7, fontSize = 12, fontName = "Aptos Narrow")
+saveWorkbook(wbS7, file.path(OUT, "TableS7_NMD-modeling.xlsx"), overwrite = TRUE)
+cat(sprintf("Table S7 written: %d rows x %d columns\n", nrow(tabS7), ncol(tabS7)))
+```
+
+# 14. Every number quoted in the manuscript
+
+```{r numbers-for-text}
+say <- function(...) cat(sprintf(...), "\n")
+say("Misclassified, PTC level (of %d): %s", nrow(ptc),
+    paste(sprintf("%s %d", names(n_ptc), n_ptc), collapse = " | "))
+say("Misclassified, codon level (of %d): %s", nrow(pc),
+    paste(sprintf("%s %d", names(n_cod), n_cod), collapse = " | "))
+say("AUC medians:  %s", paste(sprintf("%s %.2f", rs[key, "model"], rs[key, "AUC_median"]), collapse = " | "))
+say("R2 medians:   %s", paste(sprintf("%s %.2f", rs[key, "model"], rs[key, "R2_median"]), collapse = " | "))
+say("Our model beats NMDetectiveA on R2 in %d of %d splits",
+    sum(rep_tab$R2[rep_tab$model == "Our model"] > rep_tab$R2[rep_tab$model == "NMDetectiveA (RF)"]), N_SPLITS)
+say("\n--- Where the errors fall (PTC level) ---")
+w <- err_ptc[["Our model"]] != ptc$label
+e <- ptc[w, c("codon", "stop")]; e$type <- ifelse(err_ptc[["Our model"]][w] == 1, "FP", "FN")
+say("Our model misclassifies %d of %d PTCs:", sum(w), nrow(ptc))
+print(e[order(e$codon), ], row.names = FALSE)
+zone <- (e$codon >= 24 & e$codon <= 35) | (e$codon >= 630 & e$codon <= 645)
+say("  in the 5' and 3' transition zones: %d of %d; elsewhere: %s",
+    sum(zone), nrow(e), paste(sort(unique(e$codon[!zone])), collapse = ", "))
+tga_only <- sapply(sort(unique(e$codon)), function(cc) {
+  at <- err_ptc[["Our model"]][ptc$codon == cc] != ptc$label[ptc$codon == cc]
+  sum(at) == 1 && as.character(ptc$stop[ptc$codon == cc][at]) == "TGA" })
+say("  errors carried by TGA alone at that codon: %s",
+    paste(sort(unique(e$codon))[tga_only], collapse = ", "))
+first_exon <- ptc$codon <= 118
+for (m in c("aenmd", "VEP", "NMDetectiveB")) say("%s: %d first-exon false negatives; %.0f%% of first-exon PTCs correct",
+    m, sum(err_ptc[[m]] == 0 & ptc$label == 1 & first_exon),
+    100 * mean(err_ptc[[m]][first_exon] == ptc$label[first_exon]))
+fp5055 <- sort(unique(ptc$codon[err_ptc[["50-nt rule"]] == 1 & ptc$label == 0]))
+say("50-nt rule false positives: %d codons, from %d to %d (not contiguous; %d below codon 100)",
+    length(fp5055), min(fp5055), max(fp5055), sum(fp5055 < 100))
+say("\n--- Discordance ---")
+say("Discordance threshold %.3f per PTC (%.3f per codon mean)", DISCORD, DISCORD_CODON)
+say("Discordant PTCs: ours %d of %d, NMDetectiveA %d of %d", 
+    sum(abs(ptc$actual - ptc$ours) > DISCORD), nrow(ptc),
+    sum(abs(ptc$actual - ptc$nmdA) > DISCORD), nrow(ptc))
+say("Ours, discordant PTCs: %s", paste(sprintf("%d%s",
+    ptc$codon[abs(ptc$actual - ptc$ours) > DISCORD],
+    ptc$stop[abs(ptc$actual - ptc$ours) > DISCORD]), collapse = ", "))
+say("\n--- Variance structure and the TGA-CT effect ---")
+cm <- ave(y, codon, FUN = mean)
+say("Variance: total %.4f | between codons %.1f%% | within codons %.1f%% (unreachable by a per-codon score)",
+    var(y), 100 * var(cm) / var(y), 100 * var(y - cm) / var(y))
+on <- X_full$TGACT[tr] == 1
+say("TGA-CT present in %d of %d training PTCs; mean SHAP when present %+.3f (min %+.3f), when absent %+.3f",
+    sum(on), length(on), mean(shap_values[on, "TGACT"]), min(shap_values[on, "TGACT"]), mean(shap_values[!on, "TGACT"]))
+say("Codon 240: TAA %.2f, TAG %.2f, TGA %.2f (measured drop %.2f)",
+    y[codon == 240 & lmna$mutation == "TAA"], y[codon == 240 & lmna$mutation == "TAG"],
+    y[codon == 240 & lmna$mutation == "TGA"],
+    y[codon == 240 & lmna$mutation == "TAA"] - y[codon == 240 & lmna$mutation == "TGA"])
+say("Codon 217: %s", paste(sprintf("%s %.2f", lmna$mutation[codon == 217], y[codon == 217]), collapse = ", "))
+say("Models miscalling at least one PTC at codon 217: %s",
+    paste(names(err_ptc)[sapply(err_ptc, function(p) any(p[ptc$codon == 217] != ptc$label[ptc$codon == 217]))], collapse = ", "))
+say("\n--- Sampling requirement ---")
+g <- lc[lc$model == "Gene-specific RF", ]
+say("NMDetectiveA calibrated on the whole pool: R2 %.3f, AUC %.3f", LC_REF_R2, LC_REF_AUC)
+say("Gene-specific model: R2 %.2f at 20 sites, %.2f at 40, %.2f at 80",
+    g$R2_median[g$X == 20], g$R2_median[g$X == 40], g$R2_median[g$X == 80])
+say("Crossover: median exceeds the reference from X = %d; in every draw from X = %d", X_CROSS, X_ROBUST)
+se <- sd[sd$mode == "Single-edit-reachable codons only", ]
+say("Edit-reachable: %d of %d assayed codons; crossover at X = %d; R2 %.2f at 50",
+    length(unique(codon[one_edit])), length(ucod), se$X[which(se$R2_median > LC_REF_R2)[1]],
+    se$R2_median[se$X == 50])
+say("BRCA1 at 10 sites: gene-specific %.2f vs NMDetectiveA calibrated %.2f",
+    bsum$R2_median[bsum$X == 10 & bsum$model == "Gene-specific model"],
+    bsum$R2_median[bsum$X == 10 & bsum$model == "NMDetectiveA, calibrated"])
+say("Transfer LMNA -> BRCA1: |rho| model %.2f vs NMDetectiveA %.2f; gap %+.2f [%+.2f, %+.2f], better in %.0f%% of resamples",
+    transfer$rho_model, transfer$rho_nmdA, transfer$gap_median, transfer$gap_lo,
+    transfer$gap_hi, 100 * transfer$p_better)
+say("\n--- Boundaries ---")
+say("measured %s | NMDetectiveA %s | NMDetectiveB %s | ours %s", emp_act, emp_A, emp_B, emp_ours)
+say("5' logistic midpoint: codon %.2f (%.0f nt) | 3' drop midpoint: codon %.2f (%.0f nt)",
+    p5[3], 3 * (p5[3] - 1), p3[5], LAST_EJC - 3 * p3[5])
+say("NMDetectiveA takes %d distinct values over the assayed codons; NMDetectiveB %d",
+    length(unique(round(lmna$NMDetectiveA, 10))), length(unique(round(lmna$NMDetectiveB, 10))))
+say("NMDetectiveB distinct values across codons 214-566: %d",
+    length(unique(lmna$NMDetectiveB[codon >= 214 & codon <= 566])))
+```
+
+# Session info
+
+```{r session}
+sessionInfo()
+```
